@@ -19,11 +19,14 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 
-	"gomailadmin/mailserver-configurator-interface/password"
-	_ "gomailadmin/mailserver-configurator-interface/statik"
+	"github.com/cgroschupp/go-mail-admin/internal/password"
+	_ "github.com/cgroschupp/go-mail-admin/internal/statik"
 
 	_ "github.com/go-sql-driver/mysql"
 )
+
+// //go:embed mailserver-configurator-client/dist
+// var embedFrontend embed.FS
 
 var (
 	version = "development"

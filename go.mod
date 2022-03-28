@@ -1,4 +1,4 @@
-module gomailadmin
+module github.com/cgroschupp/go-mail-admin
 
 go 1.16
 
