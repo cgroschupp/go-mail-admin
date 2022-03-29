@@ -1,10 +1,10 @@
-client-build:
-	rm -f -r  ./frontend/dist/
-	cd ./frontend; npm install
-	cd ./frontend; npm run build
+client-build: clean
+	cd frontend && npx vue-cli-service build
 
+clean:
+	rm -rf frontend/dist
 
-interface-build:
+interface-build: client-build
 	go build
 
 run:
@@ -20,4 +20,4 @@ test:
 	GOMAILADMIN_DB="root:develop@tcp(127.0.0.1:3306)/vmail" GOMAILADMIN_V3="off" go test ./...
 
 
-build: client-build interface-build
+build: interface-build
