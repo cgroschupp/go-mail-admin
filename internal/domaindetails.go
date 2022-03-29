@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"fmt"
@@ -9,14 +9,13 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/render"
 	"github.com/rs/zerolog/log"
-	"github.com/unrolled/render"
 )
 
 func (m *MailServerConfiguratorInterface) getDomainDetails(w http.ResponseWriter, r *http.Request) {
 	details := newDomainDetails(chi.URLParam(r, "domain"), m.Config)
-	ren := render.New()
-	ren.JSON(w, http.StatusOK, details)
+	render.JSON(w, r, details)
 }
 
 func newDomainDetails(domainName string, config Config) DomainDetails {
@@ -36,7 +35,7 @@ func newDomainDetails(domainName string, config Config) DomainDetails {
 	d.checkMXRecord()
 	d.checkSPFRecord()
 	d.checkDMARCRecord()
-	d.checkDKIMCRecord(config.DkimSelector, config.DkimValue)
+	d.checkDKIMCRecord(config.Dkim.Selector, config.Dkim.Value)
 
 	return d
 }

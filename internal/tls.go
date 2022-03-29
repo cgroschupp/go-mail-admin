@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/unrolled/render"
+	"github.com/go-chi/render"
 )
 
 // TLSPolicy from MYSQL
@@ -36,8 +36,8 @@ func (m *MailServerConfiguratorInterface) getTLSPolicy(w http.ResponseWriter, r 
 		}
 		policys = append(policys, policy)
 	}
-	ren := render.New()
-	ren.JSON(w, http.StatusOK, policys)
+
+	render.JSON(w, r, policys)
 }
 
 func (m *MailServerConfiguratorInterface) addTLSPolicy(w http.ResponseWriter, r *http.Request) {

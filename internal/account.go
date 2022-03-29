@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/unrolled/render"
+	"github.com/go-chi/render"
 )
 
 // Account from MYSQL
@@ -53,8 +53,7 @@ func (m *MailServerConfiguratorInterface) getAccounts(w http.ResponseWriter, r *
 		account.Print = account.Username + "@" + account.Domain
 		accounts = append(accounts, account)
 	}
-	ren := render.New()
-	ren.JSON(w, http.StatusOK, accounts)
+	render.JSON(w, r, accounts)
 }
 
 func (m *MailServerConfiguratorInterface) addAccount(w http.ResponseWriter, r *http.Request) {

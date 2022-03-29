@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/unrolled/render"
+	"github.com/go-chi/render"
 )
 
 // Alias from MYSQL
@@ -48,8 +48,8 @@ func (m *MailServerConfiguratorInterface) getAliases(w http.ResponseWriter, r *h
 		alias.PrintDestination = *alias.DestinationUsername + "@" + *alias.DestinationDomain
 		aliases = append(aliases, alias)
 	}
-	ren := render.New()
-	ren.JSON(w, http.StatusOK, aliases)
+
+	render.JSON(w, r, aliases)
 }
 func (m *MailServerConfiguratorInterface) addAlias(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
@@ -66,7 +66,7 @@ func (m *MailServerConfiguratorInterface) addAlias(w http.ResponseWriter, r *htt
 		log.Info().Err(err).Msgf("Cant parse alias request")
 	}
 
-	if !m.Config.FeatureToggles.CatchAll {
+	if !m.Config.Feature.CatchAll {
 		// Remove when the feature toggle is not needed anymore
 		if alias.SourceUsername == nil {
 			w.WriteHeader(http.StatusBadRequest)

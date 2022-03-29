@@ -1,4 +1,4 @@
-package main
+package internal
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/unrolled/render"
+	"github.com/go-chi/render"
 )
 
 // Domain from MYSQL
@@ -33,14 +33,13 @@ func (m *MailServerConfiguratorInterface) getDomains(w http.ResponseWriter, r *h
 		if err != nil {
 			log.Fatal().Err(err).Msg("Error scanning Query Result for Domains")
 		}
-		if m.Config.CheckDnsRecords {
+		if m.Config.Feature.CheckDnsRecords {
 			domain.Details = newDomainDetails(domain.Domain, m.Config)
 		}
 		domains = append(domains, domain)
 	}
-	ren := render.New()
-	ren.JSON(w, http.StatusOK, domains)
-	//json.NewEncoder(w).Encode(domains)
+
+	render.JSON(w, r, domains)
 }
 
 func (m *MailServerConfiguratorInterface) addDomain(w http.ResponseWriter, r *http.Request) {

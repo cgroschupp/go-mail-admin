@@ -1,9 +1,11 @@
-package main
+package internal
 
 import (
 	"context"
 	"database/sql"
+	"embed"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,19 +16,17 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/rakyll/statik/fs"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 
 	"github.com/cgroschupp/go-mail-admin/internal/password"
-	_ "github.com/cgroschupp/go-mail-admin/internal/statik"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// //go:embed mailserver-configurator-client/dist
-// var embedFrontend embed.FS
+//go:embed public
+var embedFrontend embed.FS
 
 var (
 	version = "development"
@@ -45,14 +45,14 @@ type MailServerConfiguratorInterface struct {
 }
 
 func NewMailServerConfiguratorInterface(config Config) *MailServerConfiguratorInterface {
-	hb := password.GetPasswordHashBuilder(config.PasswordScheme)
+	hb := password.GetPasswordHashBuilder(config.Password.Scheme)
 
 	return &MailServerConfiguratorInterface{Config: config, PasswordHashBuilder: hb}
 }
 
 func (m *MailServerConfiguratorInterface) connectToDb() error {
 	log.Debug().Msg("Try to connect to Database")
-	db, err := sql.Open("mysql", m.Config.DatabaseURI)
+	db, err := sql.Open("mysql", m.Config.Database)
 
 	if err != nil {
 		return err
@@ -84,25 +84,16 @@ func (m *MailServerConfiguratorInterface) http_status(w http.ResponseWriter, r *
 	w.Write([]byte("Ok"))
 }
 
-var authConfig auth
-
 func defineRouter(m *MailServerConfiguratorInterface) chi.Router {
 	log.Debug().Msg("Setup API-Routen")
 	r := chi.NewRouter()
-
-	if m.Config.V3Config {
-		log.Info().Msgf("Run with v3 config")
-	} else {
-		redis := newRedisConnection(m.Config)
-		authConfig = NewAuthFromEnv(redis, m.Config)
-	}
 
 	cors := cors.New(cors.Options{
 		// AllowedOrigins: []string{"https://foo.com"}, // Use this to allow specific origin hosts
 		AllowedOrigins: []string{"*"},
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-APITOKEN", "x-apitoken"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
@@ -113,70 +104,55 @@ func defineRouter(m *MailServerConfiguratorInterface) chi.Router {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	apiRouten := chi.NewRouter()
-	if m.Config.V3Config {
-		apiRouten.Use(jwtauth.Verifier(tokenAuth))
-		apiRouten.Use(jwtauth.Authenticator)
-	} else {
-		apiRouten.Use(authConfig.Handle)
-		apiRouten.Post("/v1/logout", logout)
-	}
+	r.Group(func(r chi.Router) {
+		tokenAuth = jwtauth.New("HS256", []byte("secret"), nil)
+		r.Use(jwtauth.Verifier(tokenAuth))
+		r.Use(jwtauth.Authenticator)
 
-	apiRouten.Get("/v1/domain", m.getDomains)
-	apiRouten.Get("/v1/domain/{domain}", m.getDomainDetails)
-	apiRouten.Post("/v1/domain", m.addDomain)
-	apiRouten.Delete("/v1/domain", m.deleteDomain)
-	apiRouten.Get("/v1/alias", m.getAliases)
-	apiRouten.Post("/v1/alias", m.addAlias)
-	apiRouten.Delete("/v1/alias", m.deleteAlias)
-	apiRouten.Put("/v1/alias", m.updateAlias)
-	apiRouten.Get("/v1/account", m.getAccounts)
-	apiRouten.Post("/v1/account", m.addAccount)
-	apiRouten.Delete("/v1/account", m.deleteAccount)
-	apiRouten.Put("/v1/account", m.updateAccount)
-	apiRouten.Put("/v1/account/password", m.updateAccountPassword)
-	apiRouten.Get("/v1/tlspolicy", m.getTLSPolicy)
-	apiRouten.Post("/v1/tlspolicy", m.addTLSPolicy)
-	apiRouten.Put("/v1/tlspolicy", m.updateTLSPolicy)
-	apiRouten.Delete("/v1/tlspolicy", m.deleteTLSPolicy)
-	apiRouten.Get("/v1/features", m.getFeatureToggles)
-	apiRouten.Get("/v1/version", getVersion)
-	r.Get("/ping", http_ping)
-	r.Get("/status", m.http_status)
-	//r.Get("/test", test)
+		r.Get("/api/v1/domain", m.getDomains)
+		r.Get("/api/v1/domain/{domain}", m.getDomainDetails)
+		r.Post("/api/v1/domain", m.addDomain)
+		r.Delete("/api/v1/domain", m.deleteDomain)
+		r.Get("/api/v1/alias", m.getAliases)
+		r.Post("/api/v1/alias", m.addAlias)
+		r.Delete("/api/v1/alias", m.deleteAlias)
+		r.Put("/api/v1/alias", m.updateAlias)
+		r.Get("/api/v1/account", m.getAccounts)
+		r.Post("/api/v1/account", m.addAccount)
+		r.Delete("/api/v1/account", m.deleteAccount)
+		r.Put("/api/v1/account", m.updateAccount)
+		r.Put("/api/v1/account/password", m.updateAccountPassword)
+		r.Get("/api/v1/tlspolicy", m.getTLSPolicy)
+		r.Post("/api/v1/tlspolicy", m.addTLSPolicy)
+		r.Put("/api/v1/tlspolicy", m.updateTLSPolicy)
+		r.Delete("/api/v1/tlspolicy", m.deleteTLSPolicy)
+		r.Get("/api/v1/version", getVersion)
+	})
 
-	publicRouten := chi.NewRouter()
+	r.Group(func(r chi.Router) {
+		r.Get("/ping", http_ping)
+		r.Get("/status", m.http_status)
 
-	if m.Config.V3Config {
-		publicRouten.Post("/v1/login", m.login)
-		publicRouten.Post("/v1/login/username", m.login) //Old route for old frontend, need to be removed
-	} else {
-		publicRouten.Post("/v1/login/username", loginUsername)
-	}
+		r.Post("/api/v1/login", m.login)
 
-	publicRouten.Post("/v1/features", m.getFeatureToggles)
-	publicRouten.Get("/v1/features", m.getFeatureToggles)
+		r.Get("/api/v1/features", m.getFeatureToggles)
 
-	r.Mount("/api", apiRouten)
-	r.Mount("/public", publicRouten)
+	})
 
-	//Static files
-	statikFS, err := fs.New()
+	fsys, err := fs.Sub(embedFrontend, "public")
 	if err != nil {
-		log.Fatal().Err(err)
+		panic(err)
 	}
-
-	r.Handle("/*", http.StripPrefix("", http.FileServer(statikFS)))
+	r.Handle("/*", http.StripPrefix("", http.FileServer(http.FS(fsys))))
 
 	return r
 }
 
-func main() {
+func Run(config Config) {
 
 	log.Debug().Msg("Start Go Mail Admin")
 	log.Info().Msgf("Running version %v", version)
 
-	config := NewConfig()
 	m := NewMailServerConfiguratorInterface(config)
 	err := m.connectToDb()
 	if err != nil {
