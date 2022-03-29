@@ -1,6 +1,7 @@
 package main
 
 import (
+	"embed"
 	"fmt"
 	"os"
 	"strings"
@@ -15,6 +16,9 @@ import (
 	"github.com/knadh/koanf/providers/structs"
 	"github.com/rs/zerolog/log"
 )
+
+//go:embed frontend/dist
+var embedFrontend embed.FS
 
 var k = koanf.New(".")
 
@@ -56,5 +60,5 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("error loading config")
 	}
-	internal.Run(c)
+	internal.Run(c, embedFrontend)
 }

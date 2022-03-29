@@ -25,23 +25,19 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-//go:embed public
-var embedFrontend embed.FS
-
 var (
 	version = "development"
 )
 
 func init() {
-	// Config logger
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	log.Info().Msgf("Init")
 }
 
 type MailServerConfiguratorInterface struct {
 	DBConn              *sql.DB
 	Config              Config
 	PasswordHashBuilder password.PasswordHashBuilder
+	embedFrontend       embed.FS
 }
 
 func NewMailServerConfiguratorInterface(config Config) *MailServerConfiguratorInterface {
@@ -132,28 +128,27 @@ func defineRouter(m *MailServerConfiguratorInterface) chi.Router {
 	r.Group(func(r chi.Router) {
 		r.Get("/ping", http_ping)
 		r.Get("/status", m.http_status)
-
 		r.Post("/api/v1/login", m.login)
-
 		r.Get("/api/v1/features", m.getFeatureToggles)
 
 	})
 
-	fsys, err := fs.Sub(embedFrontend, "public")
+	fsys, err := fs.Sub(m.embedFrontend, "frontend/dist")
 	if err != nil {
 		panic(err)
 	}
-	r.Handle("/*", http.StripPrefix("", http.FileServer(http.FS(fsys))))
+	r.Handle("/*", http.FileServer(http.FS(fsys)))
 
 	return r
 }
 
-func Run(config Config) {
+func Run(config Config, embedFrontend embed.FS) {
 
 	log.Debug().Msg("Start Go Mail Admin")
 	log.Info().Msgf("Running version %v", version)
 
 	m := NewMailServerConfiguratorInterface(config)
+	m.embedFrontend = embedFrontend
 	err := m.connectToDb()
 	if err != nil {
 		log.Fatal().Err(err).Msg("unable to connect to db")

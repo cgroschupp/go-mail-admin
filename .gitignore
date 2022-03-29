@@ -6,5 +6,5 @@ opt/
 bin/
 !bin/.gitkeepdist/
 dist/
-mailserver-configurator-client/package-lock.json
+frontend/package-lock.json
 go-mail-admin-with-gui

@@ -1,9 +1,9 @@
 # Dev
 ## Project structure
-In the folder "mailserver-configurator-interface" you'll find the GO project which provides an HTTP API for the mailserver config. The "mailserver-configurator-client" is a VUEJS interface for that HTTP API.
+In the folder "mailserver-configurator-interface" you'll find the GO project which provides an HTTP API for the mailserver config. The "frontend" is a VUEJS interface for that HTTP API.
 
 ## Compile
-### Mailserver-Configurator-Client
+### frontend
 Open the project folder and build the Vue.js project
 
 ```
