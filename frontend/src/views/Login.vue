@@ -20,7 +20,7 @@
     // @ is an alias to /src
     import Client from "../service/Client";
     export default {
-        name: 'Home',
+        name: 'LoginView',
         components: {
         },
         data: () => ({

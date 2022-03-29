@@ -48,7 +48,7 @@
 <script>
     import Client from "../service/Client";
     export default {
-        name: 'Topbar',
+        name: 'TopbarComponent',
 
         methods: {
             checkStatus: function() {

@@ -18,7 +18,7 @@
 import Client from "../service/Client";
 
 export default {
-  name: 'Home',
+  name: 'TLSPolicyEditView',
   components: {
   },
   methods: {

@@ -50,7 +50,7 @@
     import Client from "../service/Client";
 
     export default {
-        name: 'Domain',
+        name: 'TLSPolicyView',
         methods: {
             getPolicys: function () {
                 Client.getTLSPolicys().then((res) => {

@@ -94,7 +94,7 @@
     import Client from "../service/Client";
 
     export default {
-        name: 'Domain',
+        name: 'DomainView',
         methods: {
             getDomainDetails: function () {
                 for(var i = 0; i < this.domains.length; i++) {

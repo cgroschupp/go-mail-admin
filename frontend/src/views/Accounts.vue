@@ -57,7 +57,7 @@
     import Client from "../service/Client";
 
     export default {
-        name: 'Account',
+        name: 'AccountsView',
         methods: {
             getAccounts: function () {
                 Client.getAccounts().then((res) => {

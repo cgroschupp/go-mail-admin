@@ -8,7 +8,7 @@
     // @ is an alias to /src
     import Client from "../service/Client";
     export default {
-        name: 'Home',
+        name: 'LogoutView',
         components: {
         },
         mounted() {

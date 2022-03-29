@@ -114,7 +114,7 @@ import AccountChart from "../components/AccountChart";
 import Client from "../service/Client";
 import axios from "axios";
 export default {
-  name: 'Home',
+  name: 'HomeView',
   components: {
     DomainChart,
     AliasChart,

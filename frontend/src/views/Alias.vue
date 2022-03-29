@@ -26,7 +26,7 @@
                         v-model="selected"
                         show-select
                 >
-                    <template v-slot:item.enabled="{ item }">
+                    <template v-slot>
                         <v-chip color="green" v-if="item.enabled">Yes</v-chip>
                         <v-chip color="red" v-if="!item.enabled">No</v-chip>
                     </template>
@@ -53,7 +53,7 @@
     import Client from "../service/Client";
 
     export default {
-        name: 'Domain',
+        name: 'AliasView',
         methods: {
             getAliases: function () {
                 Client.getAlias().then((res) => {

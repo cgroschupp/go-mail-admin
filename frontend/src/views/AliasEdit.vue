@@ -42,7 +42,7 @@
 <script>
     import Client from "../service/Client";
     export default {
-        name: 'AliasEdit',
+        name: 'AliasEditView',
         methods: {
             checkatsymbole: function (r) {
                 if(r.key == "@") {
