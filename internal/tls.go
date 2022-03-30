@@ -26,7 +26,7 @@ func (m *MailServerConfiguratorInterface) getTLSPolicy(w http.ResponseWriter, r 
 	}
 	defer result.Close()
 
-	var policys []TLSPolicy
+	policys := []TLSPolicy{}
 
 	for result.Next() {
 		var policy = TLSPolicy{}

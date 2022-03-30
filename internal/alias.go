@@ -30,7 +30,7 @@ func (m *MailServerConfiguratorInterface) getAliases(w http.ResponseWriter, r *h
 	}
 	defer result.Close()
 
-	var aliases []Alias
+	aliases := []Alias{}
 
 	for result.Next() {
 		var alias = Alias{}

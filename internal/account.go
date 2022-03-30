@@ -42,7 +42,7 @@ func (m *MailServerConfiguratorInterface) getAccounts(w http.ResponseWriter, r *
 	}
 	defer result.Close()
 
-	var accounts []Account
+	accounts := []Account{}
 
 	for result.Next() {
 		var account = Account{}

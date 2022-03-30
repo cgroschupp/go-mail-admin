@@ -25,7 +25,7 @@ func (m *MailServerConfiguratorInterface) getDomains(w http.ResponseWriter, r *h
 	}
 	defer result.Close()
 
-	var domains []Domain
+	domains := []Domain{}
 
 	for result.Next() {
 		var domain = Domain{}
