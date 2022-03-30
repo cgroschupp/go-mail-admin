@@ -35,7 +35,7 @@
                         this.loginFailed = true;
                     } else {
                         localStorage.setItem("token", res.data.token)
-                        this.$router.push("/home")
+                        this.$router.push({ name: 'Home' })
                     }
                 });
             }

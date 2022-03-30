@@ -56,11 +56,6 @@ const routes = [
   },
   {
     path: '/',
-    name: 'Home2',
-    component: Home
-  },
-  {
-    path: '/home',
     name: 'Home',
     component: Home
   },

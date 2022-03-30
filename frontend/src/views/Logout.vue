@@ -6,14 +6,13 @@
 
 <script>
     // @ is an alias to /src
-    import Client from "../service/Client";
     export default {
         name: 'LogoutView',
         components: {
         },
         mounted() {
-            Client.logout();
+            localStorage.removeItem('token')
+            this.$router.push({ name: 'Login' })
         }
-
     }
 </script>
