@@ -7,7 +7,7 @@
           <v-card-text>
             Mail Server Admin GUI (Version: {{version}}, <span v-if="newestVersion == 'unknown'" style="cursor: pointer;" @click="checkNewerVersion">Check for updates</span><span v-if="newestVersion != 'unknown'">the newest Version on github is {{newestVersion}}</span>)<br><br>
             <b>Fast Access</b><br>
-            <v-list-item-group v-model="item" color="primary">
+            <v-list-item-group color="primary">
               <v-list-item to="/account/new">
                 <v-list-item-content>
                   <v-list-item-title>New Account</v-list-item-title>
