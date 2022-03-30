@@ -2,10 +2,10 @@ import Api from './Api'
 
 export default {
     ping() {
-        return Api().get("/ping")
+        return Api().get("/api/ping")
     },
     getStatus() {
-        return Api().get("/status")
+        return Api().get("/api/status")
     },
     getDomains() {
         return Api().get("/api/v1/domain")

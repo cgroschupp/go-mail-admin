@@ -126,8 +126,8 @@ func defineRouter(m *MailServerConfiguratorInterface) chi.Router {
 	})
 
 	r.Group(func(r chi.Router) {
-		r.Get("/ping", http_ping)
-		r.Get("/status", m.http_status)
+		r.Get("/api/ping", http_ping)
+		r.Get("/api/status", m.http_status)
 		r.Post("/api/v1/login", m.login)
 		r.Get("/api/v1/features", m.getFeatureToggles)
 
