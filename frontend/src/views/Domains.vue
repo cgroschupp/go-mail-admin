@@ -102,7 +102,6 @@
                         for(var i = 0; i < this.domains.length; i++) {
                             if(this.domains[i].domain == res.data.domain_name) {
                                 this.domains[i].detail = res.data;
-                                console.log("Found Domain Details")
                             }
                         }
                     });
@@ -110,9 +109,7 @@
             },
             getFetaturesToggle: function () {
                 Client.featureToggles().then((res) => {
-                    console.log(res.data); 
                     if(res.data.showDomainDetails) {
-                        console.log("Show Domain Details");
                         this.headers.push({"text": "MX-Record", "sortable": false, "value": "mx"});
                         this.headers.push({"text": "SPF-Record", "sortable": false, "value": "spf"});
                         this.headers.push({"text": "DMARC-Record", "sortable": false, "value": "dmarc"});

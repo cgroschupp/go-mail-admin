@@ -12,7 +12,6 @@
         components: {
         },
         mounted() {
-            console.log("Logout");
             Client.logout();
         }
 

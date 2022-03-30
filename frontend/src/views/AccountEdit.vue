@@ -81,7 +81,6 @@
                     for(var i = 0; i < res.data.length; i++) {
                         this.domainNames.push(res.data[i].domain)
                     }
-                    console.log(this.domainNames)
                 });
 
             },

@@ -129,13 +129,10 @@ export default {
     checkNewerVersion: function () {
       axios.get("https://api.github.com/repos/kekskurse/go-mail-admin/releases").then((res) => {
         for(let i = 0; i < res.data.length; i++) {
-          console.log(res.data[i])
           if(res.data[i].prerelease == false && res.data[i].draft == false && this.newestVersion == "unknown") {
-            console.log("FOUND NEWEST VERSION", res.data[i].tag_name)
             this.newestVersion = res.data[i].tag_name
           }
         }
-        console.log(res)
       })
     }
   },
