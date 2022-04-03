@@ -27,7 +27,7 @@ const ENV_PREFIX = "GOMAILADMIN_"
 func main() {
 	defaultConfig := internal.Config{}
 	defaultConfig.Password.Scheme = "SSHA512"
-	defaultConfig.Auth.Expire = 15 * time.Minute
+	defaultConfig.Auth.Expire = 1 * time.Hour
 	defaultConfig.Feature.CheckDnsRecords = false
 	defaultConfig.Feature.ShowDomainRecords = false
 
