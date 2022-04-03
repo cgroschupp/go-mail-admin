@@ -30,6 +30,7 @@ func main() {
 	defaultConfig.Auth.Expire = 1 * time.Hour
 	defaultConfig.Feature.CheckDnsRecords = false
 	defaultConfig.Feature.ShowDomainRecords = false
+	defaultConfig.Port = 3001
 
 	err := k.Load(structs.Provider(defaultConfig, "koanf"), nil)
 	if err != nil {
