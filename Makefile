@@ -1,28 +1,20 @@
-client-build: clean
+build-frontend:
 	npm --prefix frontend run build
+
+build-backend:
+	go build ./cmd/go-mail-admin/...
+
+build: build-frontend build-backend
 
 clean:
 	rm -rf frontend/dist
-
-interface-build: client-build
-	go build ./cmd/go-mail-admin/...
+	rm -rf dist
 
 run:
-	GOMAILADMIN_PASSWORD_SCHEME=BLF-CRYPT GOMAILADMIN_DB="root:develop@tcp(127.0.0.1:3306)/vmail" GOMAILADMIN_V3="on" GOMAILADMIN_AUTH_Username="test" GOMAILADMIN_AUTH_Password="test"  go run ./...
-
-init-test:
-	docker-compose down
-	docker-compose rm
-	docker-compose up -d
-	sleep 10
+	GOMAILADMIN_AUTH_PASSWORD=develop GOMAILADMIN_AUTH_SECRET=develop ./cmd/go-mail-admin/...
 
 test:
-	GOMAILADMIN_DB="root:develop@tcp(127.0.0.1:3306)/vmail" GOMAILADMIN_V3="off" go test ./...
-
-build: interface-build
-
-swag:
-	swag init --generalInfo cmd/go-mail-admin/main.go -o internal/docs
+	go test ./...
 
 generate:
 	tsp compile .
