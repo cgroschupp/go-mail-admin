@@ -40,15 +40,6 @@ func main() {
 		log.Err(err).Msg("unable to load config")
 	}
 
-	err = k.Load(env.Provider(ENV_PREFIX, ".", func(s string) string {
-		return strings.ReplaceAll(strings.ToLower(
-			strings.TrimPrefix(s, ENV_PREFIX)), "_", ".")
-	}), nil)
-
-	if err != nil {
-		log.Fatal().Err(err).Msg("unable to load config from environment variables")
-	}
-
 	f := flag.NewFlagSet("config", flag.ContinueOnError)
 
 	f.Usage = func() {
@@ -68,6 +59,15 @@ func main() {
 
 	if err := k.Load(posflag.Provider(f, "-", k), nil); err != nil {
 		log.Fatal().Err(err).Msg("error loading config")
+	}
+
+	err = k.Load(env.Provider(ENV_PREFIX, ".", func(s string) string {
+		return strings.ReplaceAll(strings.ToLower(
+			strings.TrimPrefix(s, ENV_PREFIX)), "_", ".")
+	}), nil)
+
+	if err != nil {
+		log.Fatal().Err(err).Msg("unable to load config from environment variables")
 	}
 
 	cfg := config.Config{}
