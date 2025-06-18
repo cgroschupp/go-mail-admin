@@ -1,7 +1,7 @@
 version: 2
 before:
   hooks:
-    - make client-build
+    - make build-frontend
 builds:
   - main: ./cmd/go-mail-admin
     env:
