@@ -1,10 +1,11 @@
-gin-bin
-.vscode/
-!go-mail-admin.service
-opt/
-.idea/
-bin/
-!bin/.gitkeepdist/
+# MacOS
+.DS_Store
+
+# Default TypeSpec output
+tsp-output/
 dist/
-mailserver-configurator-client/package-lock.json
-go-mail-admin-with-gui
+
+# Dependency directories
+node_modules/
+tmp
+db.sqlite

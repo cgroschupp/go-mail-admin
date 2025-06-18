@@ -1,42 +1,21 @@
-client-build:
-	rm -f -r  ./mailserver-configurator-client/dist/
-	cd ./mailserver-configurator-client; npm install
-	cd ./mailserver-configurator-client; npm run build
+build-frontend:
+	npm --prefix frontend run build
 
-interface-copy-client:
-	rm -r ./mailserver-configurator-interface/public/*
-	cp -r ./mailserver-configurator-client/dist/* ./mailserver-configurator-interface/public/
+build-backend:
+	go build ./cmd/go-mail-admin/...
 
-interface-install-deps:
-	go get github.com/rakyll/statik
+build: build-frontend build-backend
 
-interface-build:
-	cd ./mailserver-configurator-interface; ~/go/bin/statik -f -src=./public
-	cd ./mailserver-configurator-interface; go build -o ../go-mail-admin-with-gui ./
-
-statik:
-	cd ./mailserver-configurator-interface; ~/go/bin/statik -f -src=./public
+clean:
+	rm -rf frontend/dist
+	rm -rf dist
 
 run:
-	GOMAILADMIN_DB="vmail:vmailpassword@tcp(127.0.0.1:3306)/vmail" GOMAILADMIN_V3="on" GOMAILADMIN_AUTH_Username="test" GOMAILADMIN_AUTH_Password="test"  go run ./mailserver-configurator-interface
-
-gorelease-vue:
-	go get github.com/rakyll/statik
-	rm -f -r  ./mailserver-configurator-client/dist/
-	cd ./mailserver-configurator-client; npm install
-	cd ./mailserver-configurator-client; npm run build
-	mkdir ./mailserver-configurator-interface/public/
-	cp -r ./mailserver-configurator-client/dist/* ./mailserver-configurator-interface/public/
-	cd ./mailserver-configurator-interface; ~/go/bin/statik -f -src=./public
-
-init-test:
-	docker-compose down
-	docker-compose rm
-	docker-compose up -d
-	sleep 10
+	GOMAILADMIN_AUTH_PASSWORD=develop GOMAILADMIN_AUTH_SECRET=develop ./cmd/go-mail-admin/...
 
 test:
-	GOMAILADMIN_DB="vmail:vmailpassword@tcp(127.0.0.1:3306)/vmail" GOMAILADMIN_V3="off" go test ./mailserver-configurator-interface
+	go test ./...
 
-
-build: client-build interface-copy-client interface-install-deps interface-build
+generate:
+	tsp compile .
+	go generate ./...
