@@ -11,13 +11,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16
-      - name: Build the stack
-        run: docker-compose up -d
-      - name: Deps
-        run: make interface-install-deps
-      - name: Statik
-        run: cd ./mailserver-configurator-interface; mkdir public; touch public/index.html; ~/go/bin/statik -f -src=./public
+          go-version: 1.24
       - name: Test
         run: make test
 
