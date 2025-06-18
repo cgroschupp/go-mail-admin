@@ -13,11 +13,11 @@ type Model struct {
 // Alias from MYSQL
 type Alias struct {
 	Model
-	SourceUsername      string `json:"source_username" validate:"catchall" gorm:"unique:unq_alias"`
-	SourceDomainID      uint   `json:"source_domain_id" gorm:"required,unique:unq_alias" validate:"required"`
+	SourceUsername      string `json:"source_username" validate:"catchall" gorm:"uniqueIndex:unq_alias"`
+	SourceDomainID      uint   `json:"source_domain_id" gorm:"index:unq_alias,unique" validate:"required"`
 	SourceDomain        Domain `json:"source_domain"`
-	DestinationUsername string `json:"destination_username" gorm:"required,unique:unq_alias" validate:"required"`
-	DestinationDomain   string `json:"destination_domain" gorm:"required,unique:unq_alias" validate:"required,fqdn"`
+	DestinationUsername string `json:"destination_username" gorm:"index:unq_alias,unique" validate:"required"`
+	DestinationDomain   string `json:"destination_domain" gorm:"index:unq_alias,unique" validate:"required,fqdn"`
 	Enabled             bool   `json:"enabled"`
 }
 
@@ -30,8 +30,8 @@ type Domain struct {
 // Account from MYSQL
 type Account struct {
 	Model
-	Username string  `json:"username" validate:"required"`
-	DomainID uint    `json:"domain_id"`
+	Username string  `json:"username" validate:"required" gorm:"index:unq_account,unique"`
+	DomainID uint    `json:"domain_id" gorm:"index:unq_account,unique"`
 	Domain   *Domain `json:"domain"`
 	Password string  `json:"password,omitempty"`
 	Quota    int32   `json:"quota"`
