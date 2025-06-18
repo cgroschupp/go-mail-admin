@@ -44,7 +44,7 @@ func (d *domainService) Get(ctx context.Context, id int32) (model.Domain, error)
 // List implements domain.DomainService.
 func (d *domainService) List(ctx context.Context) ([]model.Domain, error) {
 	domains := []model.Domain{}
-	if err := d.db.Preload("Checks").Find(&domains).Error; err != nil {
+	if err := d.db.Find(&domains).Error; err != nil {
 		return domains, err
 	}
 	return domains, nil

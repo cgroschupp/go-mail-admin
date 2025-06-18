@@ -14,7 +14,7 @@ type tlsPolicyService struct {
 
 // Create implements domain.TLSPolicyService.
 func (t *tlsPolicyService) Create(ctx context.Context, param *string, policy string, domainId int) (model.TLSPolicy, error) {
-	tp := model.TLSPolicy{DomainID: domainId, Policy: policy, Params: param}
+	tp := model.TLSPolicy{DomainID: uint(domainId), Policy: policy, Params: param}
 	if err := t.db.Save(&tp).Error; err != nil {
 		return tp, err
 	}

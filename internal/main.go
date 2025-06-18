@@ -86,7 +86,6 @@ func (m *MailServerConfiguratorInterface) ConnectToDb() error {
 	err = m.DB.AutoMigrate(
 		&model.TLSPolicy{},
 		&model.Domain{},
-		&model.Checks{},
 		&model.Alias{},
 		&model.Account{},
 	)

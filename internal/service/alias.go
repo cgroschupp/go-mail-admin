@@ -19,7 +19,7 @@ func NewAliasService(db *gorm.DB) domain.AliasService {
 // Create implements domain.AliasService.
 func (a *aliasService) Create(ctx context.Context, sourceUsername *string, sourceDomainID int32, destinationUsername, destinationDomain string) (model.Alias, error) {
 	alias := model.Alias{
-		SourceDomainID:      sourceDomainID,
+		SourceDomainID:      uint(sourceDomainID),
 		DestinationUsername: destinationUsername,
 		DestinationDomain:   destinationDomain,
 		Enabled:             true,
@@ -71,7 +71,7 @@ func (a *aliasService) Update(ctx context.Context, id int32, sourceUsername *str
 		al.SourceUsername = *sourceUsername
 	}
 	if sourceDomainID != nil {
-		al.SourceDomainID = *sourceDomainID
+		al.SourceDomainID = uint(*sourceDomainID)
 	}
 	if destinationUsername != nil {
 		al.DestinationUsername = *destinationUsername

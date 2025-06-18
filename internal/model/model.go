@@ -14,7 +14,7 @@ type Model struct {
 type Alias struct {
 	Model
 	SourceUsername      string `json:"source_username" validate:"catchall" gorm:"unique:unq_alias"`
-	SourceDomainID      int32  `json:"source_domain_id" gorm:"required,unique:unq_alias" validate:"required"`
+	SourceDomainID      uint   `json:"source_domain_id" gorm:"required,unique:unq_alias" validate:"required"`
 	SourceDomain        Domain `json:"source_domain"`
 	DestinationUsername string `json:"destination_username" gorm:"required,unique:unq_alias" validate:"required"`
 	DestinationDomain   string `json:"destination_domain" gorm:"required,unique:unq_alias" validate:"required,fqdn"`
@@ -24,29 +24,16 @@ type Alias struct {
 // Domain from MYSQL
 type Domain struct {
 	Model
-	Name         string `json:"name" gorm:"uniqueIndex" validate:"required,fqdn"`
-	DkimSelector string `json:"dkim-selector"`
-	Checks       Checks
-}
-
-type Checks struct {
-	Model
-
-	DomainID    uint
-	MXRecord    bool
-	SPFRecord   bool
-	DMARCRecord bool
-	DKIMRecord  bool
+	Name string `json:"name" gorm:"uniqueIndex" validate:"required,fqdn"`
 }
 
 // Account from MYSQL
 type Account struct {
 	Model
-	ID       int     `json:"id"`
 	Username string  `json:"username" validate:"required"`
-	DomainID uint    `json:"domain_id" validate:"required_if=update false"`
+	DomainID uint    `json:"domain_id"`
 	Domain   *Domain `json:"domain"`
-	Password string  `json:"password,omitempty" validate:"required_if=update false"`
+	Password string  `json:"password,omitempty"`
 	Quota    int32   `json:"quota"`
 	Enabled  bool    `json:"enabled"`
 	SendOnly bool    `json:"sendonly"`
@@ -54,7 +41,7 @@ type Account struct {
 
 type TLSPolicy struct {
 	Model
-	DomainID int `json:"domain_id" gorm:"unique"`
+	DomainID uint `json:"domain_id" gorm:"unique"`
 	Domain   *Domain
 	Policy   string  `json:"policy" validate:"required,oneof=none may encrypt dane dane-only fingerprint verify secure"`
 	Params   *string `json:"params"`
