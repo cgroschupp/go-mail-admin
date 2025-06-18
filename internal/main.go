@@ -141,7 +141,7 @@ func (m *MailServerConfiguratorInterface) MountHandlers() {
 	m.Router.Use(middleware.Logger)
 	m.Router.Use(middleware.Recoverer)
 	m.Router.Use(middleware.StripSlashes)
-	sh := api.NewServerHandler(service.NewDomainService(m.DB), service.NewAliasService(m.DB), service.NewAccountService(m.DB, m.Config.Password.Scheme), service.NewTLSPolicyService(m.DB), service.NewDashboardService(m.DB))
+	sh := api.NewServerHandler(service.NewDomainService(m.DB), service.NewAliasService(m.DB), service.NewAccountService(m.DB, m.Config.Password.Scheme), service.NewTLSPolicyService(m.DB))
 
 	openapiadmin.HandlerWithOptions(sh, openapiadmin.ChiServerOptions{BaseRouter: m.Router, BaseURL: "/api/v1", Middlewares: []openapiadmin.MiddlewareFunc{
 		openapiadmin.MiddlewareFunc(oapimw),
@@ -149,7 +149,7 @@ func (m *MailServerConfiguratorInterface) MountHandlers() {
 		openapiadmin.MiddlewareFunc(jwtauth.Verifier(m.jwtAuth)),
 	}})
 	us := service.NewUserService(m.Config.Auth)
-	psh := api.NewAuthHandler(us, m.Config, m.jwtAuth)
+	psh := api.NewAuthHandler(us, m.Config, m.jwtAuth, service.NewDashboardService(m.DB))
 
 	openapiauth.HandlerWithOptions(psh, openapiauth.ChiServerOptions{BaseRouter: m.Router, BaseURL: "/api/v1"})
 

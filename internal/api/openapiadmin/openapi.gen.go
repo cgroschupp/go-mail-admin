@@ -129,16 +129,6 @@ type DashboardStatsItem struct {
 	Labels   []string           `json:"labels"`
 }
 
-// DashboardStatus defines model for DashboardStatus.
-type DashboardStatus struct {
-	Healthy bool `json:"healthy"`
-}
-
-// DashboardVersion defines model for DashboardVersion.
-type DashboardVersion struct {
-	Version string `json:"version"`
-}
-
 // Domain defines model for Domain.
 type Domain struct {
 	CreatedAt *time.Time `json:"created_at,omitempty"`
@@ -274,9 +264,6 @@ type ServerInterface interface {
 	// (GET /stats)
 	DashboardOperationsStats(w http.ResponseWriter, r *http.Request)
 
-	// (GET /status)
-	DashboardOperationsStatus(w http.ResponseWriter, r *http.Request)
-
 	// (GET /tlspolicy)
 	TLSPoliciesList(w http.ResponseWriter, r *http.Request)
 
@@ -291,9 +278,6 @@ type ServerInterface interface {
 
 	// (PATCH /tlspolicy/{id})
 	TLSPoliciesUpdate(w http.ResponseWriter, r *http.Request, id int32)
-
-	// (GET /version)
-	DashboardOperationsVersion(w http.ResponseWriter, r *http.Request)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -390,11 +374,6 @@ func (_ Unimplemented) DashboardOperationsStats(w http.ResponseWriter, r *http.R
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// (GET /status)
-func (_ Unimplemented) DashboardOperationsStatus(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
 // (GET /tlspolicy)
 func (_ Unimplemented) TLSPoliciesList(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
@@ -417,11 +396,6 @@ func (_ Unimplemented) TLSPoliciesRead(w http.ResponseWriter, r *http.Request, i
 
 // (PATCH /tlspolicy/{id})
 func (_ Unimplemented) TLSPoliciesUpdate(w http.ResponseWriter, r *http.Request, id int32) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// (GET /version)
-func (_ Unimplemented) DashboardOperationsVersion(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -796,20 +770,6 @@ func (siw *ServerInterfaceWrapper) DashboardOperationsStats(w http.ResponseWrite
 	handler.ServeHTTP(w, r)
 }
 
-// DashboardOperationsStatus operation middleware
-func (siw *ServerInterfaceWrapper) DashboardOperationsStatus(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.DashboardOperationsStatus(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
 // TLSPoliciesList operation middleware
 func (siw *ServerInterfaceWrapper) TLSPoliciesList(w http.ResponseWriter, r *http.Request) {
 
@@ -904,20 +864,6 @@ func (siw *ServerInterfaceWrapper) TLSPoliciesUpdate(w http.ResponseWriter, r *h
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.TLSPoliciesUpdate(w, r, id)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// DashboardOperationsVersion operation middleware
-func (siw *ServerInterfaceWrapper) DashboardOperationsVersion(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.DashboardOperationsVersion(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1095,9 +1041,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/stats", wrapper.DashboardOperationsStats)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/status", wrapper.DashboardOperationsStatus)
-	})
-	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/tlspolicy", wrapper.TLSPoliciesList)
 	})
 	r.Group(func(r chi.Router) {
@@ -1112,9 +1055,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Patch(options.BaseURL+"/tlspolicy/{id}", wrapper.TLSPoliciesUpdate)
 	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/version", wrapper.DashboardOperationsVersion)
-	})
 
 	return r
 }
@@ -1122,34 +1062,34 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"+b8+AAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -20,17 +20,15 @@ type serverHandler struct {
 	aliasService     domain.AliasService
 	accountService   domain.AccountService
 	tlspolicyService domain.TLSPolicyService
-	dashboardService domain.DashboardService
 	config           config.Config
 }
 
-func NewServerHandler(domainService domain.DomainService, aliasService domain.AliasService, accountService domain.AccountService, tlspolicyService domain.TLSPolicyService, dashboardService domain.DashboardService) *serverHandler {
+func NewServerHandler(domainService domain.DomainService, aliasService domain.AliasService, accountService domain.AccountService, tlspolicyService domain.TLSPolicyService) *serverHandler {
 	return &serverHandler{
 		domainService:    domainService,
 		aliasService:     aliasService,
 		accountService:   accountService,
 		tlspolicyService: tlspolicyService,
-		dashboardService: dashboardService,
 	}
 }
 
@@ -432,21 +430,4 @@ func (s *serverHandler) DomainsUpdate(w http.ResponseWriter, r *http.Request, id
 	}
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, mapper.MapDomainToResponse(do))
-}
-
-// DashboardOperationsStatus implements openapiadmin.ServerInterface.
-func (s *serverHandler) DashboardOperationsStatus(w http.ResponseWriter, r *http.Request) {
-	render.Status(r, http.StatusOK)
-	result := s.dashboardService.Status(r.Context())
-	if !result {
-		render.Status(r, http.StatusInternalServerError)
-	}
-
-	render.JSON(w, r, openapiadmin.DashboardStatus{Healthy: result})
-}
-
-// DashboardOperationsVersion implements openapiadmin.ServerInterface.
-func (s *serverHandler) DashboardOperationsVersion(w http.ResponseWriter, r *http.Request) {
-	render.Status(r, http.StatusOK)
-	render.JSON(w, r, openapiadmin.DashboardVersion{Version: s.dashboardService.Version(r.Context())})
 }

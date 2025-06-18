@@ -13,16 +13,18 @@ import (
 )
 
 type authHandler struct {
-	userService domain.UserService
-	jwtAuth     *jwtauth.JWTAuth
-	config      *config.Config
+	userService      domain.UserService
+	dashboardService domain.DashboardService
+	jwtAuth          *jwtauth.JWTAuth
+	config           *config.Config
 }
 
-func NewAuthHandler(userService domain.UserService, config *config.Config, jwtAuth *jwtauth.JWTAuth) *authHandler {
+func NewAuthHandler(userService domain.UserService, config *config.Config, jwtAuth *jwtauth.JWTAuth, dashboardService domain.DashboardService) *authHandler {
 	return &authHandler{
-		userService: userService,
-		config:      config,
-		jwtAuth:     jwtAuth,
+		userService:      userService,
+		config:           config,
+		jwtAuth:          jwtAuth,
+		dashboardService: dashboardService,
 	}
 }
 
@@ -58,6 +60,23 @@ func (s *authHandler) UserOperationsLogin(w http.ResponseWriter, r *http.Request
 	http.SetCookie(w, &http.Cookie{Name: "jwt", Value: tokenString, HttpOnly: true, Secure: s.config.Cookie.Secure, Path: "/", Domain: s.config.Host, SameSite: http.SameSiteLaxMode})
 	render.Status(r, http.StatusOK)
 	render.JSON(w, r, openapiauth.LoginResponse{Login: true, Token: tokenString})
+}
+
+// DashboardOperationsStatus implements openapiauth.ServerInterface.
+func (s *authHandler) DashboardOperationsStatus(w http.ResponseWriter, r *http.Request) {
+	render.Status(r, http.StatusOK)
+	result := s.dashboardService.Status(r.Context())
+	if !result {
+		render.Status(r, http.StatusInternalServerError)
+	}
+
+	render.JSON(w, r, openapiauth.DashboardStatus{Healthy: result})
+}
+
+// DashboardOperationsVersion implements openapiauth.ServerInterface.
+func (s *authHandler) DashboardOperationsVersion(w http.ResponseWriter, r *http.Request) {
+	render.Status(r, http.StatusOK)
+	render.JSON(w, r, openapiauth.DashboardVersion{Version: s.dashboardService.Version(r.Context())})
 }
 
 var _ openapiauth.ServerInterface = (*authHandler)(nil)

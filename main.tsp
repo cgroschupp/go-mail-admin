@@ -201,8 +201,10 @@ model DashboardVersion {
 interface DashboardOperations {
   @route("stats")
   @get stats(): DashboardStats | Error;
+  @tag("Public")
   @route("status")
   @get status(): DashboardStatus | Error;
+  @tag("Public")
   @route("version")
   @get version(): DashboardVersion | Error;
 }

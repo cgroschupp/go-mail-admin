@@ -10,7 +10,7 @@ builds:
       - linux
       - darwin
     ldflags:
-      - -X internal.version.Version={{ .Version }}
+      - -X '{{ .ModulePath }}/internal/version.Version={{ .Version }}'
 checksum:
   name_template: 'checksums.txt'
 snapshot:

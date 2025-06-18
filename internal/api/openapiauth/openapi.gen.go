@@ -17,6 +17,16 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// DashboardStatus defines model for DashboardStatus.
+type DashboardStatus struct {
+	Healthy bool `json:"healthy"`
+}
+
+// DashboardVersion defines model for DashboardVersion.
+type DashboardVersion struct {
+	Version string `json:"version"`
+}
+
 // Error defines model for Error.
 type Error struct {
 	Code    int32  `json:"code"`
@@ -44,6 +54,12 @@ type ServerInterface interface {
 
 	// (POST /login)
 	UserOperationsLogin(w http.ResponseWriter, r *http.Request)
+
+	// (GET /status)
+	DashboardOperationsStatus(w http.ResponseWriter, r *http.Request)
+
+	// (GET /version)
+	DashboardOperationsVersion(w http.ResponseWriter, r *http.Request)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -52,6 +68,16 @@ type Unimplemented struct{}
 
 // (POST /login)
 func (_ Unimplemented) UserOperationsLogin(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /status)
+func (_ Unimplemented) DashboardOperationsStatus(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /version)
+func (_ Unimplemented) DashboardOperationsVersion(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -69,6 +95,34 @@ func (siw *ServerInterfaceWrapper) UserOperationsLogin(w http.ResponseWriter, r 
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UserOperationsLogin(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DashboardOperationsStatus operation middleware
+func (siw *ServerInterfaceWrapper) DashboardOperationsStatus(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DashboardOperationsStatus(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DashboardOperationsVersion operation middleware
+func (siw *ServerInterfaceWrapper) DashboardOperationsVersion(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DashboardOperationsVersion(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -194,6 +248,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/login", wrapper.UserOperationsLogin)
 	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/status", wrapper.DashboardOperationsStatus)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/version", wrapper.DashboardOperationsVersion)
+	})
 
 	return r
 }
@@ -201,16 +261,17 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/6xUP2/cPgz9KgZ/v9E4X5PNW4p0KJCiQZtOwQ06iXdWKouqSKcNDH/3QvKfc5Ir2iGT",
-	"yUeafCKf1IOmNpBHLwx1D6wbbFU2P8RIMRkhUsAoFjOsyWD6Hii2SqAG6+XyAkqQp4Cji0eMMJSAc4Up",
-	"xBKtP6ZIi8zqiGdiQwkRf3Q2ooH6fux2yp9r7pZ2tH9ALanmDR2tv1VRtSh4hnhQzD8pmrOEOsboVfsP",
-	"jJbM8lTxj3S+IAfyjK/ZuBReddsTOVQ+/Sn0Hf3fiYwV5vTXFFK+9QfKlay4FPukrCuuTGt98RXjo9Xp",
-	"GI8Y2ZKHGrab7WabKFBAr4KFGi4zlM4qTSZeKa2p8wJ1P5SLV/XWDGegajX1HHM2q2ux1z8aalUeyslZ",
-	"h5eRBeLUPrGMSiz5jwZq+MYYP88I30zTSRNDlvdknkb1esFMHlQIzuqcXT0w+ZP8k/V/xAPU8F91uh/V",
-	"dDmqF0obnm9GYocZGFefh3ax3b5t90VYublB1tEGGbd412AxHbtoFBfcaY1o0Gwg5x5U5+TN6IzPxBka",
-	"V77oPP4KqAVNke9tMQ9lk9Us6shJyWlzUMJtt3dWw26Ylk3dLDIWJbyyu9kRx4Gc1U8v/bVuFn33qTJj",
-	"TADU9z100UENjUioq8qRVq4hlkoFWz2+g2G3UOxhfBzgOquSYSgX6GqU+3MsSRufQXcL1RWYT77ypxGs",
-	"kGvFzZ5UNDDsht8BAAD//zTVN9OuBQAA",
+	"H4sIAAAAAAAC/9xVQW/bOgz+KwbfOxpxXnvzrQ/dYUCHFWu3S5GDIjOxOlnSRLpbEPi/D5Jt2U08rIdu",
+	"h54sUTT5id9H6gjSNs4aNExQHoFkjY2Iy2tB9dYKX92x4DaanLcOPSuMuxqF5voQlnxwCCVsrdUoDHRd",
+	"Dh6/tcpjBeVD8tzko6fdPqJk6PIpzRf0pKw5z/M0HQx/E3tl9mdpRselNO+8t/48trQVhu/O+kYwlKAM",
+	"X15ACqAM4x59iIBjhBMQOTRIJPb4e4Ax2+Q/xlzCe2P3ytwKLxpkXADuBNF366tFQC2hN6J5AaLkmU8R",
+	"fwnnE5KzhvAcjQ7HS0LIge1XfAF3fYTR/RxC8FdmZ2MkxTqcfRBKZ1dVo0x2h/5JyXCNpBZYr9ardYBg",
+	"HRrhFJRwGU3hrlxH4IWQ0raGoTx2edoVR1V1C6ZiVvV4plXslbSe/1jZRsSiTJv5cSqZsxTSB5ResLLm",
+	"fQUlfCb0H0cL3QzVCRVD4v9tdejVaxgjeBDOaSWjd/FIfbf0zRxW/3rcQQn/FFO3F0OrFydK654zw77F",
+	"aOipj0W7WK9fN3sSVkxeIUmvHPcs3teYDdfOakEZtVIiVlitIPruRKv51eD0Y2IBxpXJWoM/HErGKot9",
+	"m41FWUU1s9hTUHJgDnK4bbdaSdh0A9m2HUVGLJhm63627nFBBWk4TlIYpvEfpOR08L8FUtKdTplhTc5q",
+	"JQ8DIWk/79XZC/RSmsbX7G/wNOZ6u0R1ORD6QAOUD0dovYYSamZXFoW2UujaEhfCqeLpP+g2KdwR+mcQ",
+	"ruP8JejyZLrqB/tzWxji+Mx0nwQyM8Yen+0HpDPLdI9u0/0MAAD//+SlkBpmCQAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
