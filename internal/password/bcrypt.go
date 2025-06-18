@@ -1,9 +1,8 @@
 package password
 
 import (
+	"crypto/rand"
 	"fmt"
-	"math/rand"
-	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -16,10 +15,6 @@ type Bcrypt struct {
 
 func NewBcrypt() *Bcrypt {
 	return &Bcrypt{cost: 12}
-}
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
 }
 
 func (b Bcrypt) Hash(password string) (string, error) {

@@ -1,44 +1,26 @@
-<template>
-    <div class="container">
-        <p v-if="loginFailed">Login failed</p>
-        <v-text-field
-                v-model="username"
-                placeholder="Username"
-                label="Username"
-        ></v-text-field>
-        <v-text-field
-                v-model="password"
-                placeholder="Password"
-                label="Password"
-                type="password"
-        ></v-text-field>
-        <v-btn @click="login" >Login</v-btn>
-    </div>
-</template>
+<script setup>
+import { ref } from 'vue';
+import { useAuthStore } from '@/stores/auth.js'
+import { storeToRefs } from 'pinia'
+const username = ref("")
+const password = ref("")
 
-<script>
-    // @ is an alias to /src
-    import Client from "../service/Client";
-    export default {
-        name: 'LoginView',
-        components: {
-        },
-        data: () => ({
-            "username": "",
-            "password": "",
-            "loginFailed": false
-        }),
-        methods: {
-            login: function () {
-                Client.login(this.username, this.password).then((res) => {
-                    if(res.data.login==false) {
-                        this.loginFailed = true;
-                    } else {
-                        localStorage.setItem("token", res.data.token)
-                        this.$router.push({ name: 'Home' })
-                    }
-                });
-            }
-        }
-    }
+const store = useAuthStore()
+const {loginFailed} = storeToRefs(store)
+
+function login() {
+    store.login(username.value, password.value)
+}
 </script>
+<template>
+    <v-container>
+        <v-sheet width="300" class="mx-auto">
+            <v-alert color="error" v-if="loginFailed" text="Login failed"></v-alert>
+            <v-form fast-fail @submit.prevent>
+                <v-text-field v-model="username" placeholder="Username" label="Username"></v-text-field>
+                <v-text-field v-model="password" placeholder="Password" label="Password" type="password"></v-text-field>
+                <v-btn type="submit" block color="success" class="mt-2" @click="login">Submit</v-btn>
+            </v-form>
+        </v-sheet>
+    </v-container>
+</template>

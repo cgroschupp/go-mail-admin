@@ -1,75 +1,34 @@
+<script setup>
+import { ref, onMounted } from 'vue'
+import Client from "../service/Client";
+
+const color = ref("gray")
+
+onMounted(() => {
+    Client.getStatus().then((res) => {
+        if (res.data.healthy) {
+            color.value = "green";
+        } else {
+            color.value = "red";
+        }
+    }).catch(() => {
+        color.value = "grey";
+    })
+})
+</script>
+
 <template>
     <div>
-        <v-app-bar
-                color="#212121"
-
-                dark
-        >
-
-
-            <v-toolbar-title>Go Mail Admin</v-toolbar-title>
-            <v-icon :style="{ color: color}">mdi-heart</v-icon>
-
-            <v-spacer></v-spacer>
-
-            <v-btn to="/" icon>
-                <v-icon>mdi-view-dashboard-variant</v-icon>
-            </v-btn>
-            <v-btn to="/domains" icon>
-                <v-icon>mdi-dns</v-icon>
-            </v-btn>
-            <v-btn to="/alias" icon>
-                <v-icon>mdi-forwardburger</v-icon>
-            </v-btn>
-            <v-btn to="/account" icon>
-                <v-icon>mdi-account</v-icon>
-            </v-btn>
-            <v-btn to="/tls" icon>
-                <v-icon>mdi-security</v-icon>
-            </v-btn>
-            <v-btn to="/logout" icon>
-                <v-icon>mdi-logout</v-icon>
-            </v-btn>
-            <a href="https://github.com/kekskurse/go-mail-admin" target="_blank">
-                <v-btn icon>
-                    <v-icon>mdi-git</v-icon>
-                </v-btn>
-            </a>
-
-            <v-menu
-                    left
-                    bottom
-            >
-
-            </v-menu>
+        <v-app-bar theme="dark">
+            <v-app-bar-title>Go Mail Admin <v-icon :style="{ color: color }">mdi-heart</v-icon></v-app-bar-title>
+            <template v-slot:append>
+                <v-btn aria-label="Dashboard" to="/" icon="mdi-view-dashboard-variant"></v-btn>
+                <v-btn aria-label="Domains" to="/domains" icon="mdi-dns"></v-btn>
+                <v-btn aria-label="Aliases" to="/alias" icon="mdi-forwardburger"></v-btn>
+                <v-btn aria-label="Accounts" to="/account" icon="mdi-account"></v-btn>
+                <v-btn aria-label="TLS Policies" to="/tls" icon="mdi-security"></v-btn>
+                <v-btn aria-label="Logout" to="/logout" icon="mdi-logout"></v-btn>
+            </template>
         </v-app-bar>
     </div>
 </template>
-<script>
-    import Client from "../service/Client";
-    export default {
-        name: 'TopbarComponent',
-
-        methods: {
-            checkStatus: function() {
-                Client.getStatus().then((res) => {
-                    if(res.data == "Ok") {
-                        this.color = "green";
-                    } else {
-                        this.color = "red";
-                    }
-                }).catch(() => {
-                    this.color = "red";
-                })
-            }
-        },
-        mounted: function() {
-          this.checkStatus();
-        },
-
-        data: () => ({
-            color: "gray"
-        }),
-    }
-</script>
-

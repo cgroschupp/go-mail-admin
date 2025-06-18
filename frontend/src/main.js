@@ -1,16 +1,23 @@
-import Vue from 'vue'
+import { createApp, markRaw } from 'vue'
+import { createPinia } from 'pinia'
 import App from './App.vue'
-import vuetify from './plugins/vuetify';
 import router from './router'
-import VueSweetalert2 from 'vue-sweetalert2';
+import vuetify from './plugins/vuetify'
+import { loadFonts } from './plugins/webfontloader'
+import {Vuetify3Dialog} from 'vuetify3-dialog'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 
-import 'sweetalert2/dist/sweetalert2.min.css';
-Vue.use(VueSweetalert2);
+const pinia = createPinia()
+pinia.use(piniaPluginPersistedstate)
+pinia.use(({ store }) => {
+  store.router = markRaw(router)
+})
 
-Vue.config.productionTip = false
+loadFonts()
 
-new Vue({
-  vuetify,
-  router,
-  render: h => h(App)
-}).$mount('#app')
+createApp(App)
+  .use(pinia)
+  .use(router)
+  .use(vuetify)
+  .use(Vuetify3Dialog,{vuetify: vuetify})
+  .mount('#app')

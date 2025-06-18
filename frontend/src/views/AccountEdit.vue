@@ -2,20 +2,20 @@
     <div>
         <v-container>
             <v-card>
-                <v-card-title>Account {{account.username}}@{{account.domain}} </v-card-title>
+                <v-card-title v-if="account.id">Account {{account.username}}@{{account.domain.name}} </v-card-title>
                 <v-card-text>
                     <span v-if="!account.id">
                         <v-text-field v-model="account.username" v-on:keyup="checkatsymbole" label="Username" placeholder="Username"></v-text-field>
-                         <v-select v-model="account.domain" ref="domain" data-app="true" :items="domainNames" label="Destination-Domain"></v-select>
+                        <v-select v-model="account.domain_id" data-app="true" :item-title="item=>item.name" :item-value="item=>item.id" :items="domainNames" label="Destination-Domain"></v-select>
                         <v-text-field v-on:keyup="passwordFieldChanged()" v-on:change="passwordFieldChanged()" v-model="account.password" label="Password" :type="passwordFieldType" placeholder="Password"></v-text-field>
-                        <v-btn @click="generateRandomPassword()" x-small>Random Password</v-btn>
+                        <v-btn @click="generateRandomPassword()" size="x-small">Random Password</v-btn>
                     </span>
-                    <v-text-field v-model="account.quota" label="Quota" placeholder="Quota"></v-text-field>
+                    <v-text-field v-model.number="account.quota" label="Quota" placeholder="Quota" type="number"></v-text-field>
                     <v-checkbox v-model="account.enabled" label="Enabled"></v-checkbox>
                     <v-checkbox v-model="account.sendonly" label="Send Only"></v-checkbox>
-                    <span style="background-color:#BBDEFB; margin-left: 10px; border-radius: 5px; padding-top: 10px;padding-bottom:8px;">
-                        <v-btn @click="saveAlias" icon><v-icon>mdi-content-save</v-icon></v-btn>
-                    </span>
+                    <v-card-actions>
+                        <v-btn @click="saveAccount()"  prepend-icon="mdi-content-save">Save</v-btn>
+                    </v-card-actions>
                 </v-card-text>
             </v-card>
         </v-container>
@@ -24,11 +24,11 @@
                 <v-card-title>Change Password</v-card-title>
                 <v-card-text>
                     <v-text-field v-model="password" :type="passwordFieldType" v-on:keyup="passwordFieldChanged()" v-on:change="passwordFieldChanged()" label="New Password" placeholder="New Password"></v-text-field>
-                    <v-btn @click="generateRandomPassword()" x-small>Random Password</v-btn>
-                    <span style="background-color:#BBDEFB; margin-left: 10px; border-radius: 5px; padding-top: 10px;padding-bottom:8px;">
-                        <v-btn @click="changePassword()" icon><v-icon>mdi-content-save</v-icon></v-btn>
-                    </span>
+                    <v-btn @click="generateRandomPassword()" size="x-small">Random Password</v-btn>
                 </v-card-text>
+                <v-card-actions>
+                    <v-btn @click="changePassword()"  prepend-icon="mdi-content-save">Change Password</v-btn>
+                </v-card-actions>
             </v-card>
         </v-container>
     </div>
@@ -68,56 +68,53 @@
                 this.lastRandomPassword = password;
             },
             getAccounts: function () {
-                Client.getAccounts().then((res) => {
-                    for(var i = 0; i < res.data.length; i++) {
-                        if(res.data[i].id == this.$route.params.id) {
-                            this.account = res.data[i]
-                        }
-                    }
+                Client.getAccount(this.$route.params.id).then((res) => {
+                    this.account = res.data
                 });
             },
             getDomains: function () {
                 Client.getDomains().then((res) => {
-                    for(var i = 0; i < res.data.length; i++) {
-                        this.domainNames.push(res.data[i].domain)
-                    }
+                    this.domainNames = res.data.items
                 });
 
             },
-            saveAlias: function () {
+            saveAccount: function () {
+                if (this.account.quota === '') {
+                   delete this.account.quota
+                }
                 if(this.account.id) {
-                    Client.saveAccount(this.account).then(() => {
+                    Client.saveAccount(this.account.id, this.account).then(() => {
                         this.getAccounts();
-                        this.$swal("Account saved");
+                        this.$notify.info("Account saved");
                         this.$router.push("/account")
                     })
                 } else {
                     Client.createAccount(this.account).then(() => {
-                        this.getAccounts();
-                        this.$swal("Account created");
+                        this.$notify.info("Account created");
                         this.$router.push("/account")
                     })
                 }
             },
             changePassword: function () {
                 Client.changePassword(this.account.id, this.password).then(()=> {
-                    this.$swal("Password changed");
+                    this.$notify.info("Password changed");
                 }).catch(() => {
-                    alert("Oups, something go wrong")
+                    this.$notify.error("Oups, something go wrong")
                 })
             }
         },
 
         mounted: function() {
             this.getDomains();
-            this.getAccounts();
-
+            if (this.$route.params.id) {
+                this.getAccounts();
+            }
         },
         components: {
 
         },
         data: () => ({
-            account: {"quota": 1024, "enabled": true},
+            account: { "quota": 1024, "enabled": true },
             password: '',
             domainNames: [],
             passwordFieldType: "password",

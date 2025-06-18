@@ -1,54 +1,31 @@
-<template>
+<script setup>
+import { ref, onMounted } from 'vue'
+import Client from "./service/Client";
+import Topbar from "./components/Topbar";
 
-  <v-app>
-    <Topbar></Topbar>
-    <v-main>
-        <router-view/>
-    </v-main>
+const version = ref("unknown")
 
-  </v-app>
-</template>
-<script>
-  import Topbar from "./components/Topbar";
-
-  export default {
-    name: 'App',
-    components: {
-      'Topbar': Topbar
-    },
-    
-    methods: {
-
-    },
-
-    data: () => ({
-      loggedin: false,
-      apikey: '',
-      apisecret: ''
-
-    }),
-  }
+onMounted(() => {
+    Client.getVersion().then((res) => {
+      if (res !== undefined) {
+        version.value = res.data.version
+      }
+    }).catch((error) => {
+        version.value = "unknown"
+    });
+})
 </script>
 
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  color: #2c3e50;
-}
-
-#nav {
-  padding: 30px;
-
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-
-    &.router-link-exact-active {
-      color: #42b983;
-    }
-  }
-}
-</style>
+<template>
+  <v-app>
+    <Topbar/>
+    <v-main>
+      <router-view />
+    </v-main>
+    <v-footer>
+      <v-row justify="center" no-gutters>
+        Mail Server Admin GUI (Version: {{version}})
+      </v-row>
+    </v-footer>
+  </v-app>
+</template>

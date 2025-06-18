@@ -2,31 +2,42 @@ package internal
 
 import (
 	"context"
-	"database/sql"
 	"embed"
+	"errors"
 	"fmt"
 	"io/fs"
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
+	"github.com/getkin/kin-openapi/openapi3filter"
+	"github.com/glebarez/sqlite"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/go-chi/render"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 
 	"github.com/go-chi/chi/v5/middleware"
+	oapimiddleware "github.com/oapi-codegen/nethttp-middleware"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/cors"
 
+	assets "github.com/cgroschupp/go-mail-admin"
+	"github.com/cgroschupp/go-mail-admin/internal/api"
+	"github.com/cgroschupp/go-mail-admin/internal/api/openapiadmin"
+	"github.com/cgroschupp/go-mail-admin/internal/api/openapiauth"
+	"github.com/cgroschupp/go-mail-admin/internal/config"
+	"github.com/cgroschupp/go-mail-admin/internal/model"
 	"github.com/cgroschupp/go-mail-admin/internal/password"
-
-	_ "github.com/go-sql-driver/mysql"
+	"github.com/cgroschupp/go-mail-admin/internal/service"
 )
 
 var (
-	version = "development"
+	Version = "development"
 )
 
 func init() {
@@ -34,31 +45,59 @@ func init() {
 }
 
 type MailServerConfiguratorInterface struct {
-	DBConn              *sql.DB
-	Config              Config
+	Config              *config.Config
 	PasswordHashBuilder password.PasswordHashBuilder
 	embedFrontend       embed.FS
+	DB                  *gorm.DB
+	jwtAuth             *jwtauth.JWTAuth
+	Router              *chi.Mux
 }
 
-func NewMailServerConfiguratorInterface(config Config) *MailServerConfiguratorInterface {
+func NewMailServerConfiguratorInterface(config *config.Config) *MailServerConfiguratorInterface {
 	hb := password.GetPasswordHashBuilder(config.Password.Scheme)
+	jwtAuth := jwtauth.New("HS256", []byte(config.Auth.Secret), nil)
 
-	return &MailServerConfiguratorInterface{Config: config, PasswordHashBuilder: hb}
+	return &MailServerConfiguratorInterface{
+		Config:              config,
+		PasswordHashBuilder: hb,
+		jwtAuth:             jwtAuth,
+		Router:              chi.NewRouter(),
+	}
 }
 
-func (m *MailServerConfiguratorInterface) connectToDb() error {
+func (m *MailServerConfiguratorInterface) ConnectToDb() error {
 	log.Debug().Msg("Try to connect to Database")
-	db, err := sql.Open("mysql", m.Config.Database)
+	var err error
+	var db *gorm.DB
+
+	switch m.Config.Database.Type {
+	case "sqlite":
+		db, err = gorm.Open(sqlite.Open(m.Config.Database.DSN), &gorm.Config{TranslateError: true})
+	case "mysql":
+		db, err = gorm.Open(mysql.Open(m.Config.Database.DSN), &gorm.Config{TranslateError: true})
+	default:
+		log.Fatal().Msgf("unsupported db engine `%s`", m.Config.Database.Type)
+	}
 
 	if err != nil {
 		return err
 	}
-	m.DBConn = db
+	m.DB = db
+	err = m.DB.AutoMigrate(
+		&model.TLSPolicy{},
+		&model.Domain{},
+		&model.Checks{},
+		&model.Alias{},
+		&model.Account{},
+	)
 
+	if err != nil {
+		return fmt.Errorf("unable to migrate db: %w", err)
+	}
 	log.Debug().Msg("Ping Database")
 
-	err = db.Ping()
-	if err != nil {
+	result := db.Select("1")
+	if result.Error != nil {
 		return err
 	}
 
@@ -66,99 +105,87 @@ func (m *MailServerConfiguratorInterface) connectToDb() error {
 	return nil
 }
 
-func http_ping(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Pong"))
+func Ping(w http.ResponseWriter, r *http.Request) {
+	render.JSON(w, r, map[string]string{"nessage": "pong"})
 }
 
-func (m *MailServerConfiguratorInterface) http_status(w http.ResponseWriter, r *http.Request) {
-	err := m.DBConn.Ping()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-	w.Write([]byte("Ok"))
-}
+func (m *MailServerConfiguratorInterface) MountHandlers() {
+	// docs.SwaggerInfo.Host = fmt.Sprintf("%s:%d", m.Config.Host, m.Config.Port)
 
-func defineRouter(m *MailServerConfiguratorInterface) chi.Router {
 	log.Debug().Msg("Setup API-Routen")
-	r := chi.NewRouter()
 
-	cors := cors.New(cors.Options{
-		// AllowedOrigins: []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"*"},
-		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: true,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
-	})
-	r.Use(cors.Handler)
+	// cors := cors.New(cors.Options{
+	// 	AllowedOrigins:   []string{"*"},
+	// 	AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
+	// 	AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
+	// 	AllowCredentials: true,
+	// 	MaxAge:           300, // Maximum value not ignored by any of major browsers
+	// })
 
-	r.Use(middleware.RequestID)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
+	spec, err := openapiadmin.GetSwagger()
+	if err != nil {
+		panic(err)
+	}
 
-	r.Group(func(r chi.Router) {
-		tokenAuth = jwtauth.New("HS256", []byte("secret"), nil)
-		r.Use(jwtauth.Verifier(tokenAuth))
-		r.Use(jwtauth.Authenticator)
+	openapi3filter.RegisterBodyDecoder("application/merge-patch+json", openapi3filter.JSONBodyDecoder)
+	oapimw := oapimiddleware.OapiRequestValidatorWithOptions(spec, &oapimiddleware.Options{
+		Prefix:               "/api/v1",
+		DoNotValidateServers: true,
+		Options: openapi3filter.Options{
+			AuthenticationFunc: func(ctx context.Context, ai *openapi3filter.AuthenticationInput) error {
+				_, _, err := jwtauth.FromContext(ctx)
+				return err
+			},
+		}})
+	m.Router.Use(middleware.RequestID)
+	m.Router.Use(middleware.Logger)
+	m.Router.Use(middleware.Recoverer)
+	m.Router.Use(middleware.StripSlashes)
+	sh := api.NewServerHandler(service.NewDomainService(m.DB), service.NewAliasService(m.DB), service.NewAccountService(m.DB, m.Config.Password.Scheme), service.NewTLSPolicyService(m.DB), service.NewDashboardService(m.DB))
 
-		r.Get("/api/v1/domain", m.getDomains)
-		r.Get("/api/v1/domain/{domain}", m.getDomainDetails)
-		r.Post("/api/v1/domain", m.addDomain)
-		r.Delete("/api/v1/domain", m.deleteDomain)
-		r.Get("/api/v1/alias", m.getAliases)
-		r.Post("/api/v1/alias", m.addAlias)
-		r.Delete("/api/v1/alias", m.deleteAlias)
-		r.Put("/api/v1/alias", m.updateAlias)
-		r.Get("/api/v1/account", m.getAccounts)
-		r.Post("/api/v1/account", m.addAccount)
-		r.Delete("/api/v1/account", m.deleteAccount)
-		r.Put("/api/v1/account", m.updateAccount)
-		r.Put("/api/v1/account/password", m.updateAccountPassword)
-		r.Get("/api/v1/tlspolicy", m.getTLSPolicy)
-		r.Post("/api/v1/tlspolicy", m.addTLSPolicy)
-		r.Put("/api/v1/tlspolicy", m.updateTLSPolicy)
-		r.Delete("/api/v1/tlspolicy", m.deleteTLSPolicy)
-		r.Get("/api/v1/version", getVersion)
-	})
+	openapiadmin.HandlerWithOptions(sh, openapiadmin.ChiServerOptions{BaseRouter: m.Router, BaseURL: "/api/v1", Middlewares: []openapiadmin.MiddlewareFunc{
+		openapiadmin.MiddlewareFunc(oapimw),
+		openapiadmin.MiddlewareFunc(jwtauth.Authenticator(m.jwtAuth)),
+		openapiadmin.MiddlewareFunc(jwtauth.Verifier(m.jwtAuth)),
+	}})
+	us := service.NewUserService(m.Config.Auth)
+	psh := api.NewAuthHandler(us, m.Config, m.jwtAuth)
 
-	r.Group(func(r chi.Router) {
-		r.Get("/api/ping", http_ping)
-		r.Get("/api/status", m.http_status)
-		r.Post("/api/v1/login", m.login)
-		r.Get("/api/v1/features", m.getFeatureToggles)
-
-	})
+	openapiauth.HandlerWithOptions(psh, openapiauth.ChiServerOptions{BaseRouter: m.Router, BaseURL: "/api/v1"})
 
 	fsys, err := fs.Sub(m.embedFrontend, "frontend/dist")
 	if err != nil {
 		panic(err)
 	}
-	r.Handle("/*", http.FileServer(http.FS(fsys)))
+	hfs := http.FS(fsys)
+	fserver := http.FileServer(hfs)
 
-	return r
+	m.Router.Get("/*", func(w http.ResponseWriter, req *http.Request) {
+		if req.URL.Path != "/" {
+			if _, err := hfs.Open(strings.TrimPrefix(req.URL.Path, "/")); errors.Is(err, os.ErrNotExist) {
+				req.URL.Path = "/"
+			}
+		}
+		fserver.ServeHTTP(w, req)
+	})
 }
 
-func Run(config Config, embedFrontend embed.FS) {
-
+func Run(cfg config.Config) {
 	log.Debug().Msg("Start Go Mail Admin")
-	log.Info().Msgf("Running version %v", version)
+	log.Info().Msgf("Running version %v", Version)
 
-	m := NewMailServerConfiguratorInterface(config)
-	m.embedFrontend = embedFrontend
-	err := m.connectToDb()
+	m := NewMailServerConfiguratorInterface(&cfg)
+	err := m.ConnectToDb()
+
+	m.embedFrontend = assets.EmbedFrontend
+
+	m.MountHandlers()
+
 	if err != nil {
 		log.Fatal().Err(err).Msg("unable to connect to db")
 	}
 
-	defer m.DBConn.Close()
-
-	router := defineRouter(m)
-
-	srv := http.Server{Addr: fmt.Sprintf("%s:%d", config.Address, config.Port), Handler: router}
+	srv := http.Server{Addr: fmt.Sprintf("%s:%d", cfg.Address, cfg.Port), Handler: m.Router}
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -175,5 +202,5 @@ func Run(config Config, embedFrontend embed.FS) {
 		log.Fatal().Err(err).Msg("unable to stop http server")
 	}
 
-	log.Debug().Msg("Done, Shotdown")
+	log.Debug().Msg("Done, Shutdown")
 }

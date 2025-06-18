@@ -1,18 +1,15 @@
+<script setup>
+import { onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth';
+
+onMounted(() => {
+    const store = useAuthStore()
+    store.logout()
+})
+</script>
+
 <template>
     <div class="container">
-      Logout...
+        Logout...
     </div>
 </template>
-
-<script>
-    // @ is an alias to /src
-    export default {
-        name: 'LogoutView',
-        components: {
-        },
-        mounted() {
-            localStorage.removeItem('token')
-            this.$router.push({ name: 'Login' })
-        }
-    }
-</script>

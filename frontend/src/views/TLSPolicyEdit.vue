@@ -1,16 +1,19 @@
 <template>
-  <div class="container">
+  <v-container>
     <v-card>
       <v-card-title>TLS Policy</v-card-title>
       <v-card-text>
-        <v-text-field type="text" v-model="domain" label="Domain"></v-text-field>
+        <v-select ref="domain" :items="domains" data-app="true" label="Domain" v-model="domain_id"
+          :item-title="item => item.name" :item-value="item => item.id" :disabled="this.$route.params.id"></v-select>
         <label>Policy</label>
-        <v-select2 v-model="policy" data-app="true" :options="policyOptions" label="Destination-Domain"></v-select2>
+        <v-select :items="policyOptions" label="Policy" v-model="policy" data-app="true"></v-select>
         <v-text-field type="text" v-model="params" label="Params"></v-text-field>
-        <v-btn @click="savePolicy()">Save Policy</v-btn>
       </v-card-text>
+      <v-card-actions>
+        <v-btn @click="savePolicy()">Save Policy</v-btn>
+      </v-card-actions>
     </v-card>
-  </div>
+  </v-container>
 </template>
 
 <script>
@@ -23,41 +26,44 @@ export default {
   },
   methods: {
     'savePolicy': function () {
-      if(this.$route.params.id) {
-        Client.saveTLSPolicy({"id": this.$route.params.id,"domain": this.domain, "policy": this.policy, "params": this.params}).then(() => {
-          this.$swal("Policy saved");
-          this.getPolicy();
+      if (this.$route.params.id) {
+        Client.updateTLSPolicy(this.$route.params.id, { "domain": this.domain, "policy": this.policy, "params": this.params }).then(() => {
+          this.$notify.info("Policy saved", { location: 'bottom center' });
         }).catch((res) => {
-          console.error(res)
-          alert("Oups, something go wrong")
+          this.$notify.error("Oups, something go wrong" + res)
         });
       } else {
-        Client.createTLSPolicy({"domain": this.domain, "policy": this.policy, "params": this.params}).then(() => {
-          this.$swal("Policy saved");
+        Client.createTLSPolicy({ "domain_id": this.domain_id, "policy": this.policy, "params": this.params }).then(() => {
+          this.$notify.info("Policy saved", { location: 'bottom center' });
         }).catch((res) => {
-          console.error(res)
-          alert("Oups, something go wrong")
+          this.$notify.error("Oups, something go wrong" + res)
         });
       }
+      this.$router.push("/tls")
 
     },
+    getDomains: function () {
+      Client.getDomains().then((res) => {
+        this.domains = res.data.items
+      });
+    },
     getPolicy: function () {
-      Client.getTLSPolicys().then((res) => {
-        for(var i = 0; i < res.data.length; i++) {
-          if(res.data[i].id == this.$route.params.id) {
-            this.domain = res.data[i].domain
-            this.policy = res.data[i].policy
-            this.params = res.data[i].params
-          }
-        }
+      Client.getTLSPolicy(this.$route.params.id).then((res) => {
+        this.domain_id = res.data.domain_id
+        this.policy = res.data.policy
+        this.params = res.data.params
       });
     }
   },
   mounted: function () {
-    this.getPolicy();
+    this.getDomains();
+    if (this.$route.params.id) {
+      this.getPolicy();
+    }
   },
   data: () => ({
-    domain: "",
+    domain_id: null,
+    domains: [],
     policy: "",
     params: "",
     policyOptions: ['none', 'may', 'encrypt', 'dane', 'dane-only', 'fingerprint', 'verify', 'secure']

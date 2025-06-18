@@ -2,130 +2,79 @@
     <div>
         <v-container>
             <v-card>
-                <v-card-title>Alias {{alias.source_username}}@{{alias.source_domain}} to {{alias.destination_username}}@{{alias.destination_domain}}</v-card-title>
                 <v-card-text>
-                    <v-text-field
-                        v-model="alias.source_username"
-                        placeholder="Source Username"
-                        label="Source Username"
-                        :disabled="catchall == 1"
-                        v-on:keyup="checkatsymbole"
-                        ></v-text-field>
-                    <v-checkbox v-if="this.toggle_catchall" v-model="catchall" label="Catch all"></v-checkbox>
-                    <v-select
-                            ref="domain"
-                            :items="domainNames"
-                            label="Source Domain"
-                            v-model="alias.source_domain"
-                    ></v-select>
-                    <v-text-field
-                            v-model="alias.destination_username"
-                            placeholder="Destination Username"
-                            label="Destination Username"
-                    ></v-text-field>
-                    <v-text-field
-                            v-model="alias.destination_domain"
-                            placeholder="Destination Domain"
-                            label="Destination Domain"
-                    ></v-text-field>
+                    <v-text-field v-model="alias.source_username" placeholder="Source Username" label="Source Username"
+                        v-on:keyup="checkatsymbole"></v-text-field>
+                    <v-select v-model="alias.source_domain_id" :item-title="item=>item.name" :item-value="item=>item.id" :items="domains" label="Source Domain"></v-select>
+                    <v-text-field v-model="alias.destination_username" placeholder="Destination Username"
+                        label="Destination Username"></v-text-field>
+                    <v-text-field v-model="alias.destination_domain" placeholder="Destination Domain"
+                        label="Destination Domain"></v-text-field>
                     <v-checkbox v-model="alias.enabled" label="Enabled"></v-checkbox>
-                    <span style="background-color:#BBDEFB; margin-left: 10px; border-radius: 5px; padding-top: 10px;padding-bottom:8px;">
-                        <v-btn @click="saveAlias" icon><v-icon>mdi-content-save</v-icon></v-btn>
-                    </span>
-
                 </v-card-text>
+                <v-card-actions>
+                    <v-btn @click="saveAlias" prepend-icon="mdi-content-save">Save</v-btn>
+                </v-card-actions>
             </v-card>
         </v-container>
     </div>
 </template>
 
 <script>
-    import Client from "../service/Client";
-    export default {
-        name: 'AliasEditView',
-        methods: {
-            checkatsymbole: function (r) {
-                if(r.key == "@") {
-                    this.alias.source_username = this.alias.source_username.substr(0, this.alias.source_username.length -1 );
-                    this.$refs.domain.focus();
-                }
-
-            },
-            getFeatures: function () {
-                Client.featureToggles().then((res) => {
-                   this.toggle_catchall = res.data.catchall;
-                });
-            },
-            getAliases: function () {
-                Client.getAlias().then((res) => {
-                    for(var i = 0; i < res.data.length; i++) {
-                        if(res.data[i].id == this.$route.params.id) {
-                            this.alias = res.data[i]
-                            if(this.alias.source_username == null) {
-                                this.catchall = true
-                            }
-                        }
-                    }
-                });
-            },
-            getDomains: function () {
-                Client.getDomains().then((res) => {
-                   for(var i = 0; i < res.data.length; i++) {
-                       this.domainNames.push(res.data[i].domain)
-                   }
-                });
-
-            },
-            saveAlias: function () {
-                //remove this if feature toggle is not needed anymore
-                if(this.toggle_catchall) {
-                    if(this.catchall) {
-                        this.alias.source_username = null;
-                    } else {
-                        if(this.alias.source_username == null) {
-                            this.alias.source_username = "";
-                        }
-                    }
-                }
-
-                if(this.alias.id) {
-                    Client.saveAlias(this.alias).then(() => {
-                        this.getAliases();
-                        this.$swal("Alias saved");
-                        this.$router.push("/alias")
-                    })
-                } else {
-                    Client.createAlias(this.alias).then(() => {
-                        this.getAliases();
-                        this.$swal("Alias created");
-                        this.$router.push("/alias")
-                    }, (e) => {
-                        var msg = e.response.data
-                        if(msg == "Source Username can`t be empty string, only null or string is valid"){
-                            msg = "Enter Source Username or enable catch all!"
-                        }
-                        this.$swal("Something go wrong", msg, "error");
-                    })
-                }
-
+import Client from "../service/Client";
+export default {
+    name: 'AliasEditView',
+    methods: {
+        checkatsymbole: function (r) {
+            if (r.key == "@") {
+                this.alias.source_username = this.alias.source_username.substr(0, this.alias.source_username.length - 1);
+                this.$refs.domain.focus();
             }
         },
-
-        mounted: function() {
-            this.getFeatures();
-            this.getDomains();
-            this.getAliases();
-
+        getAlias: function () {
+            Client.getAlias(this.$route.params.id).then((res) => {
+                this.alias = res.data
+            });
         },
-        components: {
-
+        getDomains: function () {
+            Client.getDomains().then((res) => {
+                this.domains = res.data.items
+            });
         },
-        data: () => ({
-            alias: {"enabled": true},
-            domainNames: [],
-            sample: ["abc", "asd", "sdf"],
-            catchall: false,
-            toggle_catchall: false
-        }),
-    }
+        saveAlias: function () {
+            if (this.alias.id) {
+                Client.saveAlias(this.alias.id, this.alias).then(() => {
+                    this.$notify.info("Alias saved", { location: 'bottom center' });
+                    this.$router.push("/alias")
+                })
+            } else {
+                Client.createAlias(this.alias).then(() => {
+                    this.$notify.info("Alias created", { location: 'bottom center' });
+                    this.$router.push("/alias")
+                }, (e) => {
+                    var msg = e.response.data
+                    if (msg == "Source Username can`t be empty string, only null or string is valid") {
+                        msg = "Enter Source Username or enable catch all!"
+                    }
+                    this.$notify.error("Something go wrong", { location: 'bottom center' });
+                })
+            }
+
+        }
+    },
+
+    mounted: function () {
+        this.getDomains();
+        if (this.$route.params.id != "new") {
+            this.getAlias();
+        }
+    },
+    components: {
+
+    },
+    data: () => ({
+        alias: { enabled: true },
+        domains: [],
+    }),
+}
 </script>

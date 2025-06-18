@@ -1,9 +1,9 @@
 package password
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"math/rand"
 
 	"golang.org/x/crypto/argon2"
 )

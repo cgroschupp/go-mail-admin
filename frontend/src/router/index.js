@@ -1,5 +1,4 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import Domains from "../views/Domains";
 import Alias from "../views/Alias";
@@ -10,8 +9,7 @@ import TLSPolicy from "../views/TLSPolicy";
 import TLSPolicyEdit from "../views/TLSPolicyEdit";
 import Login from "../views/Login"
 import Logout from "../views/Logout";
-
-Vue.use(VueRouter)
+import { useAuthStore } from '@/stores/auth.js'
 
 const routes = [
   {
@@ -35,6 +33,11 @@ const routes = [
     component: Accounts
   },
   {
+    path: '/account/new',
+    name: 'AccountNew',
+    component: AccountEdit
+  },
+  {
     path: '/account/:id',
     name: 'AccountEdit',
     component: AccountEdit
@@ -42,7 +45,7 @@ const routes = [
   {
     path: '/tls',
     name: 'TLS',
-    component: TLSPolicy
+    component: TLSPolicy,
   },
   {
     path: '/tls/new',
@@ -68,21 +71,19 @@ const routes = [
     path: '/logout',
     name: 'Logout',
     component: Logout
-  },
-  {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
   }
 ]
 
-const router = new VueRouter({
-  //mode: 'history',
-  base: process.env.BASE_URL,
-  routes
+let router = createRouter({
+  history: createWebHistory(),
+  routes: routes,
+})
+
+router.beforeEach((to, from, next) => {
+  const store = useAuthStore()
+  const isAuthenticated = store.isAuthenticated
+  if (to.name !== 'Login' && !isAuthenticated) next({ name: 'Login' })
+  else next()
 })
 
 export default router

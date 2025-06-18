@@ -1,35 +1,19 @@
 import axios from 'axios'
+import { useAuthStore } from '@/stores/auth.js'
 
-export default() => {
-    let url;
-    url = process.env.VUE_APP_API_URL
-    if(process.env.VUE_APP_DYNAMIC_URL == "true") {
-        url = window.location.href.substr(0,  window.location.href.indexOf("#"))
-    }
-    var header = {};
-    header["Accept"] = 'application/json';
-    header["Content-Type"] = 'application/json';
-    if(localStorage.getItem("token") != null) {
-        header["Authorization"] = "BEARER " + localStorage.getItem("token")
-    }
-
-    let a;
-     a = axios.create({
-        baseURL: url,
-        withCredentials: false,
-        headers: header
+export default () => {
+    const store = useAuthStore()
+    const instance = axios.create({
+        baseURL: process.env.VUE_APP_API_URL,
     });
-    a.interceptors.response.use(response => {
-        return response;
-    }, error => {
+    instance.interceptors.response.use(function (response) {
+        return response
+    }, function (error) {
         if (error.response.status === 401) {
-            /*url = location.href
-            if(url.indexOf("#") > 0){
-
-            }*/
-            location.href = "#/login";
+            store.logout();
         }
-        return error;
-    });
-    return a;
+
+        return Promise.reject(error);
+    })
+    return instance
 }

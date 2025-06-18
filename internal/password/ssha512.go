@@ -1,11 +1,10 @@
 package password
 
 import (
+	"crypto/rand"
 	"crypto/sha512"
 	"encoding/base64"
 	"fmt"
-	"math/rand"
-	"time"
 )
 
 const ssha512SchemeName = "SSHA512"
@@ -15,10 +14,6 @@ type Ssha512 struct {
 
 func NewSsha512() *Ssha512 {
 	return &Ssha512{}
-}
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
 }
 
 func (s Ssha512) Hash(password string) (string, error) {

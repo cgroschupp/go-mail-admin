@@ -1,119 +1,99 @@
 <template>
-    <div>
-        <v-container>
-            <v-card style="padding-bottom: 10px;">
-                <v-card-title>
-                    Aliases
-                    <v-spacer></v-spacer>
-                    <v-text-field
-                            v-model="search"
-                            append-icon="mdi-magnify"
-                            label="Search"
-                            single-line
-                            hide-details
-                    ></v-text-field>
-                </v-card-title>
-                <span style="background-color:#BBDEFB; margin-left: 10px; border-radius: 5px; padding-top: 10px;padding-bottom:8px;">
-                    <v-btn to="/alias/new" icon><v-icon>mdi-plus-circle-outline</v-icon></v-btn>
-                    <v-btn @click="removeAlias()" v-if="selected.length > 0" icon><v-icon>mdi-close-circle-outline</v-icon></v-btn>
-                    <v-btn @click="editAlias()" v-if="selected.length == 1" icon><v-icon>mdi-circle-edit-outline</v-icon></v-btn>
-                </span>
+    <v-container>
+        <v-card>
+            <v-card-title>Aliases </v-card-title>
+            <v-card-text>
+                <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line
+                    hide-details></v-text-field>
 
-                <v-data-table
-                        :headers="headers"
-                        :items="aliases"
-                        :search="search"
-                        v-model="selected"
-                        show-select
-                >
-                    <template v-slot>
+                <v-data-table :headers="headers" :items="aliases" :search="search" v-model="selected" show-select return-object>
+                    <template v-slot:item.enabled="{ item }">
                         <v-chip color="green" v-if="item.enabled">Yes</v-chip>
                         <v-chip color="red" v-if="!item.enabled">No</v-chip>
                     </template>
                 </v-data-table>
-                <span style="background-color:#BBDEFB; margin-left: 10px; border-radius: 5px; padding-top: 10px;padding-bottom:8px;">
-                    <v-btn to="/alias/new" icon><v-icon>mdi-plus-circle-outline</v-icon></v-btn>
-                    <v-btn @click="removeAlias()" v-if="selected.length > 0" icon><v-icon>mdi-close-circle-outline</v-icon></v-btn>
-                    <v-btn @click="editAlias()" v-if="selected.length == 1" icon><v-icon>mdi-circle-edit-outline</v-icon></v-btn>
-                </span>
-
-            </v-card>
-
-
-        </v-container>
-
-
-    </div>
-
-
+            </v-card-text>
+            <v-card-actions>
+                <v-btn to="/alias/new" prepend-icon="mdi-plus-circle-outline">Add</v-btn>
+                <v-btn @click="removeAlias()" v-if="selected.length > 0"
+                    prepend-icon="mdi-delete">Delete</v-btn>
+                <v-btn @click="editAlias()" v-if="selected.length == 1"
+                    prepend-icon="mdi-pencil">Edit</v-btn>
+            </v-card-actions>
+        </v-card>
+    </v-container>
 </template>
-
 <script>
 
-    import Client from "../service/Client";
+import Client from "../service/Client";
 
-    export default {
-        name: 'AliasView',
-        methods: {
-            getAliases: function () {
-                Client.getAlias().then((res) => {
-                    this.aliases = res.data;
-                });
-            },
-            editAlias: function () {
-                this.$router.push("/alias/"+this.selected[0].id)
-            },
-            removeAlias: function () {
-                this.$swal({
-                    'title': 'Delete Alias',
-                    'icon': "warning",
-                    showCancelButton: true,
-                }).then((res) => {
-                    if(res.value) {
-                        for(var i = 0; i < this.selected.length; i++) {
-                            Client.removeAlias(this.selected[i].id).then(() => {
-                                this.getAliases();
-                            })
-                        }
+export default {
+    name: 'AliasView',
+    methods: {
+        getAliases: function () {
+            Client.getAliases().then((res) => {
+                this.aliases = res.data.items;
+            });
+        },
+        editAlias: function () {
+            this.$router.push("/alias/" + this.selected[0].id)
+        },
+        removeAlias: function () {
+            this.$dialog.create({
+                title: "Delete Alias",
+                text: "Do you want to delete the Alias(es) " + this.selected.map(entry => entry.source_username + "@" + entry.source_domain.name).join(', ') + "?",
+                cancelText: "No",
+                confirmationText: "Yes",
+                buttons: [
+                    { key: 'cancel', title: 'Cancel', value: 'cancel', color: 'grey', variant: 'text' },
+                    { key: 'ok', title: 'OK', value: 'ok', color: 'info', variant: 'tonal' }
+                ],
+            }).then((anwser) => {
+                if (anwser === "ok") {
+                    for (var i = 0; i < this.selected.length; i++) {
+                        Client.removeAlias(this.selected[i].id).then(() => {
+                            this.getAliases();
+                        })
                     }
-                });
-            }
-
-        },
-        mounted: function() {
-            this.getAliases();
-
-        },
-        components: {
-
-        },
-        data: () => ({
-            'headers': [
-                {
-                    text: '#',
-                    sortable: true,
-                    value: 'id'
-                },
-                {
-                    text: 'Source',
-                    sortable: true,
-                    value: 'print_source'
-                },
-                {
-                    text: 'Destination',
-                    sortable: true,
-                    value: 'print_destination'
-                },
-                {
-                    text: 'Enabled',
-                    sortable: true,
-                    value: 'enabled'
                 }
-            ],
-            'search': '',
-            'aliases': [],
-            'selected': [],
+            })
+        }
 
-        }),
-    }
+    },
+    mounted: function () {
+        this.getAliases();
+
+    },
+    components: {
+
+    },
+    data: () => ({
+        'headers': [
+            {
+                title: '#',
+                sortable: true,
+                value: 'id'
+            },
+            {
+                title: 'Source',
+                sortable: true,
+                value: 'source_display',
+            },
+            {
+                title: 'Destination',
+                sortable: true,
+                value: 'destination_display',
+            },
+            {
+                title: 'Enabled',
+                sortable: true,
+                value: 'enabled'
+            }
+        ],
+        'search': '',
+        'aliases': [],
+        'selected': [],
+
+    }),
+}
 </script>
