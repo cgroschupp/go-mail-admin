@@ -40,7 +40,7 @@ func (suite *AliasTestSuite) TestListAlias() {
 
 	if suite.NoError(err, "Error decoding response body") {
 		if suite.Len(aliaes.Items, 1) {
-			suite.Equal(d.SourceDomainID, aliaes.Items[0].SourceDomainId)
+			suite.Equal(d.SourceDomainID, uint(aliaes.Items[0].SourceDomainId))
 		}
 	}
 }
@@ -70,7 +70,7 @@ func (suite *AliasTestSuite) TestAddAliasCatchAll() {
 	err := json.NewDecoder(rr.Body).Decode(&alias)
 
 	if suite.NoError(err, "Error decoding response body") {
-		suite.Equal(int32(1), alias.SourceDomainID)
+		suite.Equal(uint(1), alias.SourceDomainID)
 		suite.Equal("", alias.SourceUsername)
 		suite.Equal("google.com", alias.DestinationDomain)
 		suite.Equal("foo", alias.DestinationUsername)

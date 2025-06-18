@@ -70,7 +70,7 @@ func (suite *TLSPolicyTestSuite) TestGetTLSPolicy() {
 	if suite.NoError(err, "Error decoding response body") {
 		suite.Equal("may", tlsPolicy.Policy)
 		suite.Equal("test", *tlsPolicy.Params)
-		suite.Equal(1, tlsPolicy.DomainID)
+		suite.Equal(uint(1), tlsPolicy.DomainID)
 	}
 }
 
