@@ -1,4 +1,5 @@
 build-frontend:
+	npm --prefix frontend ci
 	npm --prefix frontend run build
 
 build-backend:
