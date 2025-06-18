@@ -314,7 +314,7 @@ func (s *serverHandler) AccountsRead(w http.ResponseWriter, r *http.Request, id 
 	account, err := s.accountService.Get(r.Context(), id)
 	if err != nil {
 		render.Status(r, http.StatusInternalServerError)
-		render.Render(w, r, openapiadmin.Error{Error: err.Error()})
+		_ = render.Render(w, r, openapiadmin.Error{Error: err.Error()})
 		return
 	}
 	render.Status(r, http.StatusOK)
@@ -327,7 +327,7 @@ func (s *serverHandler) AccountsUpdate(w http.ResponseWriter, r *http.Request, i
 	err := render.DecodeJSON(r.Body, &patch)
 	if err != nil {
 		render.Status(r, http.StatusInternalServerError)
-		render.Render(w, r, openapiadmin.Error{Error: err.Error()})
+		_ = render.Render(w, r, openapiadmin.Error{Error: err.Error()})
 		return
 	}
 	defer r.Body.Close()
@@ -335,7 +335,7 @@ func (s *serverHandler) AccountsUpdate(w http.ResponseWriter, r *http.Request, i
 	acc, err := s.accountService.Update(r.Context(), id, patch.Username, patch.Quota, patch.Sendonly, patch.Enabled)
 	if err != nil {
 		render.Status(r, http.StatusInternalServerError)
-		render.Render(w, r, openapiadmin.Error{Error: err.Error()})
+		_ = render.Render(w, r, openapiadmin.Error{Error: err.Error()})
 		return
 	}
 	render.Status(r, http.StatusOK)
