@@ -62,7 +62,7 @@ func (suite *AliasTestSuite) TestAddAlias() {
 }
 
 func (suite *AliasTestSuite) TestAddAliasCatchAll() {
-	suite.Server.Config.Feature.CatchAll = true
+	// suite.Server.Config.Feature.CatchAll = true
 	rr := suite.Request("POST", "/api/v1/alias", "application/json", bytes.NewBufferString("{\"source_domain_id\":1, \"destination_username\":\"foo\", \"destination_domain\":\"google.com\", \"enabled\":true}"))
 	suite.Require().Equal(http.StatusCreated, rr.Code)
 

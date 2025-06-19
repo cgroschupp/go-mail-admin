@@ -169,7 +169,7 @@ func (m *MailServerConfiguratorInterface) MountHandlers() {
 	})
 }
 
-func Run(cfg config.Config) {
+func Run(cfg config.Config) error {
 	log.Debug().Msg("Start Go Mail Admin")
 	log.Info().Msgf("Running version %v", Version)
 
@@ -181,10 +181,10 @@ func Run(cfg config.Config) {
 	m.MountHandlers()
 
 	if err != nil {
-		log.Fatal().Err(err).Msg("unable to connect to db")
+		return fmt.Errorf("unable to connect to db: %w", err)
 	}
 
-	srv := http.Server{Addr: fmt.Sprintf("%s:%d", cfg.Address, cfg.Port), Handler: m.Router}
+	srv := http.Server{Addr: cfg.Address, Handler: m.Router}
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -198,8 +198,9 @@ func Run(cfg config.Config) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal().Err(err).Msg("unable to stop http server")
+		return fmt.Errorf("unable to stop http server: %w", err)
 	}
 
 	log.Debug().Msg("Done, Shutdown")
+	return nil
 }

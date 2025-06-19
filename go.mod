@@ -11,12 +11,11 @@ require (
 	github.com/go-chi/jwtauth/v5 v5.3.3
 	github.com/go-chi/render v1.0.3
 	github.com/go-playground/validator/v10 v10.26.0
-	github.com/knadh/koanf v1.5.0
 	github.com/oapi-codegen/nethttp-middleware v1.0.3-0.20250425070948-753057ec98db
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/rs/zerolog v1.34.0
-	github.com/spf13/pflag v1.0.6
 	github.com/stretchr/testify v1.10.0
+	github.com/urfave/cli/v3 v3.3.8
 	golang.org/x/crypto v0.39.0
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gorm v1.30.0
@@ -30,7 +29,6 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/dprotaso/go-yit v0.0.0-20220510233725-9ba8df137936 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/glebarez/go-sqlite v1.21.2 // indirect
@@ -55,9 +53,6 @@ require (
 	github.com/mailru/easyjson v0.9.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/mitchellh/copystructure v1.2.0 // indirect
-	github.com/mitchellh/mapstructure v1.5.0 // indirect
-	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1 // indirect
 	github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037 // indirect

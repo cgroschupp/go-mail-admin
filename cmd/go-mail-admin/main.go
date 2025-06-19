@@ -1,81 +1,52 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
-	"strings"
 	"time"
-
-	flag "github.com/spf13/pflag"
 
 	"github.com/cgroschupp/go-mail-admin/internal"
 	"github.com/cgroschupp/go-mail-admin/internal/config"
 	"github.com/cgroschupp/go-mail-admin/internal/utils"
-	"github.com/knadh/koanf"
-	"github.com/knadh/koanf/providers/env"
-	"github.com/knadh/koanf/providers/posflag"
-	"github.com/knadh/koanf/providers/structs"
 	"github.com/rs/zerolog/log"
+	"github.com/urfave/cli/v3"
 )
-
-var k = koanf.New(".")
 
 const ENV_PREFIX = "GOMAILADMIN_"
 
+func prefixEnvSource(name string) cli.ValueSourceChain {
+	return cli.EnvVars(fmt.Sprintf("%s%s", ENV_PREFIX, name))
+}
+
 func main() {
-	defaultConfig := config.Config{}
-	defaultConfig.Password.Scheme = "SSHA512"
-	defaultConfig.Auth.Username = "admin"
-	defaultConfig.Auth.Expire = 1 * time.Hour
-	defaultConfig.Feature.CheckDnsRecords = false
-	defaultConfig.Feature.ShowDomainRecords = false
-	defaultConfig.Port = 3001
-	defaultConfig.Address = "localhost"
-	defaultConfig.Host = "localhost"
-	defaultConfig.Database.DSN = "db.sqlite?_foreign_keys=on"
-	defaultConfig.Database.Type = "sqlite"
-
-	err := k.Load(structs.Provider(defaultConfig, "koanf"), nil)
-	if err != nil {
-		log.Err(err).Msg("unable to load config")
-	}
-
-	f := flag.NewFlagSet("config", flag.ContinueOnError)
-
-	f.Usage = func() {
-		fmt.Println(f.FlagUsages())
-		os.Exit(0)
-	}
-	f.Uint16("port", defaultConfig.Port, "port to listen")
-	f.String("address", defaultConfig.Address, "address to listen")
-	f.String("db-type", defaultConfig.Database.Type, "db type")
-	f.String("db-dsn", defaultConfig.Database.DSN, "db type")
-	f.String("password-scheme", defaultConfig.Password.Scheme, "default password scheme to use")
-	f.Duration("auth-expire", defaultConfig.Auth.Expire, "jwt expire duration")
-
-	if err := f.Parse(os.Args[1:]); err != nil {
-		log.Fatal().Err(err).Msg("error parse args")
-	}
-
-	if err := k.Load(posflag.Provider(f, "-", k), nil); err != nil {
-		log.Fatal().Err(err).Msg("error loading config")
-	}
-
-	err = k.Load(env.Provider(ENV_PREFIX, ".", func(s string) string {
-		return strings.ReplaceAll(strings.ToLower(
-			strings.TrimPrefix(s, ENV_PREFIX)), "_", ".")
-	}), nil)
-
-	if err != nil {
-		log.Fatal().Err(err).Msg("unable to load config from environment variables")
-	}
-
 	cfg := config.Config{}
-	err = k.Unmarshal("", &cfg)
-	if err != nil {
-		log.Fatal().Err(err).Msg("error loading config")
+	cmd := &cli.Command{
+		Name: "go-mail-admin",
+		Flags: []cli.Flag{
+			&cli.StringFlag{Name: "listen", Destination: &cfg.Address, Value: ":3001", Usage: "address to listen", Sources: prefixEnvSource("LISTEN")},
+			&cli.StringFlag{Name: "db-type", Destination: &cfg.Database.Type, Value: "sqlite", Usage: "db type", Sources: prefixEnvSource("DB_TYPE")},
+			&cli.StringFlag{Name: "db-dsn", Destination: &cfg.Database.DSN, Value: "db.sqlite?_foreign_keys=on", Usage: "db dsn", Sources: prefixEnvSource("DB_DSN")},
+			&cli.StringFlag{Name: "password-scheme", Destination: &cfg.Password.Scheme, Value: "SSHA512", Usage: "default password scheme to use", Sources: prefixEnvSource("PASSWORD_SCHEME")},
+			&cli.DurationFlag{Name: "auth-expire", Destination: &cfg.Auth.Expire, Value: 1 * time.Hour, Usage: "jwt expire duration", Sources: prefixEnvSource("AUTH_EXPIRE")},
+			&cli.StringFlag{Name: "auth-username", Destination: &cfg.Auth.Username, Value: "admin", Sources: prefixEnvSource("AUTH_USERNAME")},
+			&cli.StringFlag{Name: "auth-password", Destination: &cfg.Auth.Password, Sources: prefixEnvSource("AUTH_PASSWORD")},
+			&cli.StringFlag{Name: "auth-secret", Destination: &cfg.Auth.Secret, Sources: prefixEnvSource("AUTH_SECRET")},
+			&cli.BoolFlag{Name: "cookie-secure", Destination: &cfg.Cookie.Secure, Value: false, Sources: prefixEnvSource("COOKIE_SECURE")},
+			&cli.StringFlag{Name: "cookie-host", Destination: &cfg.Host, Value: "localhost", Sources: prefixEnvSource("COOKIE_HOST")},
+		},
+
+		Action: func(context.Context, *cli.Command) error {
+			return run(cfg)
+		},
 	}
 
+	if err := cmd.Run(context.Background(), os.Args); err != nil {
+		log.Err(err).Msg("unable to run app")
+	}
+}
+
+func run(cfg config.Config) error {
 	if cfg.Auth.Secret == "" {
 		log.Warn().Msg("generate authSecret")
 		cfg.Auth.Secret = utils.RandSeq(60)
@@ -97,5 +68,5 @@ func main() {
 		log.Info().Msgf("use hostname %s", cfg.Hostname)
 	}
 
-	internal.Run(cfg)
+	return internal.Run(cfg)
 }
