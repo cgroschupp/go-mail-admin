@@ -18,7 +18,7 @@ require (
 	github.com/urfave/cli/v3 v3.3.8
 	golang.org/x/crypto v0.39.0
 	gorm.io/driver/mysql v1.6.0
-	gorm.io/gorm v1.30.0
+	gorm.io/gorm v1.30.1
 )
 
 require (
