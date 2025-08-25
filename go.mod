@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.24.6
 
 require (
-	github.com/getkin/kin-openapi v0.132.0
+	github.com/getkin/kin-openapi v0.133.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-chi/jwtauth/v5 v5.3.3
@@ -63,6 +63,7 @@ require (
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/speakeasy-api/openapi-overlay v0.10.2 // indirect
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
+	github.com/woodsbury/decimal128 v1.3.0 // indirect
 	golang.org/x/mod v0.26.0 // indirect
 	golang.org/x/net v0.42.0 // indirect
 	golang.org/x/sync v0.16.0 // indirect
