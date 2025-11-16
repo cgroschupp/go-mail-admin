@@ -14,8 +14,8 @@ require (
 	github.com/oapi-codegen/nethttp-middleware v1.0.3-0.20250425070948-753057ec98db
 	github.com/oapi-codegen/runtime v1.1.2
 	github.com/rs/zerolog v1.34.0
-	github.com/stretchr/testify v1.10.0
-	github.com/urfave/cli/v3 v3.3.9
+	github.com/stretchr/testify v1.11.1
+	github.com/urfave/cli/v3 v3.6.1
 	golang.org/x/crypto v0.41.0
 	gorm.io/driver/mysql v1.6.0
 	gorm.io/gorm v1.30.1
