@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"strings"
@@ -65,6 +66,25 @@ func NewMailServerConfiguratorInterface(config *config.Config) *MailServerConfig
 	}
 }
 
+func ensureParseTime(dsn string) string {
+	if !strings.Contains(dsn, "?") {
+		return dsn + "?parseTime=true"
+	}
+
+	u, err := url.Parse("mysql://" + dsn)
+	if err != nil {
+		return dsn
+	}
+
+	q := u.Query()
+	if q.Get("parseTime") == "" {
+		q.Set("parseTime", "true")
+		u.RawQuery = q.Encode()
+	}
+
+	return strings.TrimPrefix(u.String(), "mysql://")
+}
+
 func (m *MailServerConfiguratorInterface) ConnectToDb() error {
 	log.Debug().Msg("Try to connect to Database")
 	var err error
@@ -74,7 +94,8 @@ func (m *MailServerConfiguratorInterface) ConnectToDb() error {
 	case "sqlite":
 		db, err = gorm.Open(sqlite.Open(m.Config.Database.DSN), &gorm.Config{TranslateError: true})
 	case "mysql":
-		db, err = gorm.Open(mysql.Open(m.Config.Database.DSN), &gorm.Config{TranslateError: true})
+		dsn := ensureParseTime(m.Config.Database.DSN)
+		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{TranslateError: true})
 	default:
 		log.Fatal().Msgf("unsupported db engine `%s`", m.Config.Database.Type)
 	}
