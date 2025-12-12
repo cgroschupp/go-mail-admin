@@ -95,21 +95,17 @@ func (a *accountService) Update(ctx context.Context, id int32, username *string,
 
 // Stats implements domain.AccountService.
 func (a *accountService) Stats(ctx context.Context) (domain.Stats, error) {
-	type result struct {
-		Enabled bool
-		Total   int
-	}
-	results := []result{}
-	if err := a.db.Model(&model.Account{}).Select("enabled, count(*) as total").Group("enabled").Find(&results).Error; err != nil {
+	var enabled, disabled int32
+	if err := a.db.Model(&model.Account{}).Select(`
+		SUM(CASE WHEN enabled THEN 1 ELSE 0 END)  AS enabled,
+		SUM(CASE WHEN NOT enabled THEN 1 ELSE 0 END) AS disabled
+	`).Row().Scan(&enabled, &disabled); err != nil {
 		return domain.Stats{}, err
 	}
-	data := []int32{}
-	for _, v := range results {
-		data = append(data, int32(v.Total))
-	}
+	result := []int32{disabled, enabled}
 	stats := domain.Stats{
 		Labels:   []string{"Disabled", "Enabled"},
-		Datasets: []domain.Dataset{{Data: data, BackgroundColor: []string{"red", "green"}}},
+		Datasets: []domain.Dataset{{Data: result, BackgroundColor: []string{"red", "green"}}},
 	}
 	return stats, nil
 }
