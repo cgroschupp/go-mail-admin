@@ -34,6 +34,7 @@ func main() {
 			&cli.StringFlag{Name: "auth-secret", Destination: &cfg.Auth.Secret, Sources: prefixEnvSource("AUTH_SECRET")},
 			&cli.BoolFlag{Name: "cookie-secure", Destination: &cfg.Cookie.Secure, Value: false, Sources: prefixEnvSource("COOKIE_SECURE")},
 			&cli.StringFlag{Name: "cookie-host", Destination: &cfg.Host, Value: "localhost", Sources: prefixEnvSource("COOKIE_HOST")},
+			&cli.StringFlag{Name: "mail-hostname", Destination: &cfg.Hostname, Value: "localhost", Sources: prefixEnvSource("MAIL_HOSTNAME")},
 		},
 
 		Action: func(context.Context, *cli.Command) error {
