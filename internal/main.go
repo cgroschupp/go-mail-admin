@@ -135,14 +135,6 @@ func (m *MailServerConfiguratorInterface) MountHandlers() {
 
 	log.Debug().Msg("Setup API-Routen")
 
-	// cors := cors.New(cors.Options{
-	// 	AllowedOrigins:   []string{"*"},
-	// 	AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
-	// 	AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type"},
-	// 	AllowCredentials: true,
-	// 	MaxAge:           300, // Maximum value not ignored by any of major browsers
-	// })
-
 	spec, err := openapiadmin.GetSwagger()
 	if err != nil {
 		panic(err)
