@@ -12,7 +12,6 @@ export const useAuthStore = defineStore('auth', {
   actions: {
     async login(username, password) {
       await Client.login(username, password).then((res) => {
-        console.log(res.status)
         if (res.status == 200) {
           this.isAuthenticated = true;
           this.loginFailed = false
