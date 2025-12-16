@@ -18,8 +18,10 @@ import (
 
 type DBSuite struct {
 	suite.Suite
-	Server *internal.MailServerConfiguratorInterface
-	Token  string
+	Server    *internal.MailServerConfiguratorInterface
+	Token     string
+	crsfToken string
+	cookies   []*http.Cookie
 }
 
 func (suite *DBSuite) SetupTest() {
@@ -32,13 +34,26 @@ func (suite *DBSuite) SetupTest() {
 	suite.NoError(s.ConnectToDb())
 	s.MountHandlers()
 
-	req := httptest.NewRequest("POST", "/api/v1/login", bytes.NewBufferString("{\"username\":\"unittest\",\"password\":\"unittest\"}"))
-	req.Header.Set("Content-Type", "application/json")
+	req := httptest.NewRequest("GET", "/api/v1/csrf", nil)
 	rr := httptest.NewRecorder()
+	s.Router.ServeHTTP(rr, req)
+	csrfResult := openapiauth.CsrfResponse{}
+	err := json.NewDecoder(rr.Body).Decode(&csrfResult)
+	suite.NoError(err)
+	suite.crsfToken = csrfResult.CsrfToken
+	req = httptest.NewRequest("POST", "/api/v1/login", bytes.NewBufferString("{\"username\":\"unittest\",\"password\":\"unittest\"}"))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Add("X-CSRF-Token", suite.crsfToken)
+	req.Header.Add("Origin", "localhost")
+	suite.cookies = rr.Result().Cookies()
+	for _, c := range rr.Result().Cookies() {
+		req.AddCookie(c)
+	}
+	rr = httptest.NewRecorder()
 	s.Router.ServeHTTP(rr, req)
 	suite.Equal(http.StatusOK, rr.Code)
 	result := openapiauth.LoginResponse{}
-	err := json.NewDecoder(rr.Body).Decode(&result)
+	err = json.NewDecoder(rr.Body).Decode(&result)
 	suite.NoError(err)
 	suite.True(result.Login)
 	suite.Token = result.Token
@@ -55,7 +70,11 @@ func (suite *DBSuite) Request(method, path string, contentType string, body io.R
 	req := httptest.NewRequest(method, path, body)
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", suite.Token))
 	req.Header.Add("Content-Type", contentType)
-
+	req.Header.Add("X-CSRF-Token", suite.crsfToken)
+	req.Header.Add("Origin", "localhost")
+	for _, c := range suite.cookies {
+		req.AddCookie(c)
+	}
 	rr := httptest.NewRecorder()
 	suite.Server.Router.ServeHTTP(rr, req)
 	return rr
