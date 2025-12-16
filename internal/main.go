@@ -208,7 +208,13 @@ func Run(cfg config.Config) error {
 	srv := http.Server{Addr: cfg.Address, Handler: m.Router}
 
 	go func() {
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		var err error
+		if cfg.TLSKey != "" {
+			err = srv.ListenAndServeTLS(cfg.TLSCert, cfg.TLSKey)
+		} else {
+			err = srv.ListenAndServe()
+		}
+		if err != nil && err != http.ErrServerClosed {
 			log.Error().Err(err).Msg("unable to start HTTP Server")
 		}
 	}()

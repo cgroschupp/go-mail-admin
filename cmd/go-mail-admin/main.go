@@ -35,6 +35,8 @@ func main() {
 			&cli.BoolFlag{Name: "cookie-secure", Destination: &cfg.Cookie.Secure, Value: false, Sources: prefixEnvSource("COOKIE_SECURE")},
 			&cli.StringFlag{Name: "cookie-host", Destination: &cfg.Host, Value: "localhost", Sources: prefixEnvSource("COOKIE_HOST")},
 			&cli.StringFlag{Name: "mail-hostname", Destination: &cfg.Hostname, Value: "localhost", Sources: prefixEnvSource("MAIL_HOSTNAME")},
+			&cli.StringFlag{Name: "tls-cert", Destination: &cfg.TLSCert, Sources: prefixEnvSource("TLS_CERT")},
+			&cli.StringFlag{Name: "tls-key", Destination: &cfg.TLSKey, Sources: prefixEnvSource("TLS_KEY")},
 		},
 
 		Action: func(context.Context, *cli.Command) error {
@@ -57,6 +59,9 @@ func run(cfg config.Config) error {
 		cfg.Auth.Password = utils.RandSeq(10)
 		log.Info().Msgf("generate password for user %s: %s", cfg.Auth.Username, cfg.Auth.Password)
 
+	}
+	if (cfg.TLSCert != "" && cfg.TLSKey == "") || (cfg.TLSCert == "" && cfg.TLSKey != "") {
+		return fmt.Errorf("need, both tls-key and tls-cert")
 	}
 
 	if cfg.Hostname == "" {

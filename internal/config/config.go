@@ -14,6 +14,8 @@ type Config struct {
 	Hostname string
 	Host     string
 	Cookie   CookieConfig
+	TLSCert  string
+	TLSKey   string
 }
 
 type CookieConfig struct {
