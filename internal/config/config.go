@@ -16,6 +16,7 @@ type Config struct {
 	Cookie   CookieConfig
 	TLSCert  string
 	TLSKey   string
+	Origin   string
 }
 
 type CookieConfig struct {
