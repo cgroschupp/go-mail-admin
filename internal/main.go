@@ -55,8 +55,11 @@ type MailServerConfiguratorInterface struct {
 	Router              *chi.Mux
 }
 
-func NewMailServerConfiguratorInterface(config *config.Config) *MailServerConfiguratorInterface {
-	hb := password.GetPasswordHashBuilder(config.Password.Scheme)
+func NewMailServerConfiguratorInterface(config *config.Config) (*MailServerConfiguratorInterface, error) {
+	hb, err := password.GetPasswordHashBuilder(config.Password.Scheme)
+	if err != nil {
+		return nil, err
+	}
 	jwtAuth := jwtauth.New("HS256", []byte(config.Auth.Secret), nil)
 
 	return &MailServerConfiguratorInterface{
@@ -64,7 +67,7 @@ func NewMailServerConfiguratorInterface(config *config.Config) *MailServerConfig
 		PasswordHashBuilder: hb,
 		jwtAuth:             jwtAuth,
 		Router:              chi.NewRouter(),
-	}
+	}, nil
 }
 
 func ensureParseTime(dsn string) string {
@@ -130,14 +133,12 @@ func Ping(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, map[string]string{"nessage": "pong"})
 }
 
-func (m *MailServerConfiguratorInterface) MountHandlers() {
-	// docs.SwaggerInfo.Host = fmt.Sprintf("%s:%d", m.Config.Host, m.Config.Port)
-
+func (m *MailServerConfiguratorInterface) MountHandlers() error {
 	log.Debug().Msg("Setup API-Routen")
 
 	spec, err := openapiadmin.GetSwagger()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	openapi3filter.RegisterBodyDecoder("application/merge-patch+json", openapi3filter.JSONBodyDecoder)
@@ -161,7 +162,7 @@ func (m *MailServerConfiguratorInterface) MountHandlers() {
 	m.Router.Use(middleware.Logger)
 	m.Router.Use(middleware.Recoverer)
 	m.Router.Use(middleware.StripSlashes)
-	sh := api.NewServerHandler(service.NewDomainService(m.DB), service.NewAliasService(m.DB), service.NewAccountService(m.DB, m.Config.Password.Scheme), service.NewTLSPolicyService(m.DB))
+	sh := api.NewServerHandler(service.NewDomainService(m.DB), service.NewAliasService(m.DB), service.NewAccountService(m.DB, m.PasswordHashBuilder), service.NewTLSPolicyService(m.DB))
 
 	openapiadmin.HandlerWithOptions(sh, openapiadmin.ChiServerOptions{BaseRouter: m.Router, BaseURL: "/api/v1", Middlewares: []openapiadmin.MiddlewareFunc{
 		openapiadmin.MiddlewareFunc(oapimw),
@@ -175,7 +176,7 @@ func (m *MailServerConfiguratorInterface) MountHandlers() {
 
 	fsys, err := fs.Sub(m.embedFrontend, "frontend/dist")
 	if err != nil {
-		panic(err)
+		return err
 	}
 	hfs := http.FS(fsys)
 	fserver := http.FileServer(hfs)
@@ -188,21 +189,27 @@ func (m *MailServerConfiguratorInterface) MountHandlers() {
 		}
 		fserver.ServeHTTP(w, req)
 	})
+	return nil
 }
 
 func Run(cfg config.Config) error {
 	log.Debug().Msg("Start Go Mail Admin")
 	log.Info().Msgf("Running version %v", Version)
 
-	m := NewMailServerConfiguratorInterface(&cfg)
-	err := m.ConnectToDb()
+	m, err := NewMailServerConfiguratorInterface(&cfg)
+	if err != nil {
+		return err
+	}
+	err = m.ConnectToDb()
+	if err != nil {
+		return fmt.Errorf("unable to connect to db: %w", err)
+	}
 
 	m.embedFrontend = assets.EmbedFrontend
 
-	m.MountHandlers()
-
+	err = m.MountHandlers()
 	if err != nil {
-		return fmt.Errorf("unable to connect to db: %w", err)
+		return fmt.Errorf("unable to mount handlers: %w", err)
 	}
 
 	srv := http.Server{Addr: cfg.Address, Handler: m.Router}

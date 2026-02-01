@@ -25,11 +25,12 @@ type DBSuite struct {
 }
 
 func (suite *DBSuite) SetupTest() {
-	s := internal.NewMailServerConfiguratorInterface(&config.Config{
+	s, err := internal.NewMailServerConfiguratorInterface(&config.Config{
 		Database: config.DatabaseConfig{Type: "sqlite", DSN: "unittest.db"},
 		Password: config.PasswordConfig{Scheme: "SSHA512"},
 		Auth:     config.AuthConfig{Username: "unittest", Password: "unittest", Secret: "unittest", Expire: 1 * time.Hour},
 	})
+	suite.NoError(err)
 
 	suite.NoError(s.ConnectToDb())
 	s.MountHandlers()
@@ -38,7 +39,7 @@ func (suite *DBSuite) SetupTest() {
 	rr := httptest.NewRecorder()
 	s.Router.ServeHTTP(rr, req)
 	csrfResult := openapiauth.CsrfResponse{}
-	err := json.NewDecoder(rr.Body).Decode(&csrfResult)
+	err = json.NewDecoder(rr.Body).Decode(&csrfResult)
 	suite.NoError(err)
 	suite.crsfToken = csrfResult.CsrfToken
 	req = httptest.NewRequest("POST", "/api/v1/login", bytes.NewBufferString("{\"username\":\"unittest\",\"password\":\"unittest\"}"))

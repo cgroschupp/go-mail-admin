@@ -23,9 +23,9 @@ func (a *accountService) ChangePassword(ctx context.Context, id int32, password 
 	return a.db.Model(&model.Account{}).Where("id = ?", id).Update("password", pwHash).Error
 }
 
-func NewAccountService(db *gorm.DB, passwordHashType string) domain.AccountService {
+func NewAccountService(db *gorm.DB, hb password.PasswordHashBuilder) domain.AccountService {
 	return &accountService{
-		db: db, passwordHashBuilder: password.GetPasswordHashBuilder(passwordHashType),
+		db: db, passwordHashBuilder: hb,
 	}
 }
 
