@@ -17,7 +17,6 @@ import (
 	"github.com/glebarez/sqlite"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/go-chi/render"
-	"github.com/gorilla/csrf"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"gorm.io/driver/mysql"
@@ -151,12 +150,14 @@ func (m *MailServerConfiguratorInterface) MountHandlers() error {
 				return err
 			},
 		}})
-	m.Router.Use(csrf.Protect(
-		[]byte(m.Config.Auth.Secret),
-		csrf.CookieName("csrf"),
-		csrf.SameSite(csrf.SameSiteLaxMode),
-		csrf.Secure(m.Config.Cookie.Secure),
-		csrf.TrustedOrigins([]string{m.Config.Origin})))
+
+	cop := http.NewCrossOriginProtection()
+	if err := cop.AddTrustedOrigin(m.Config.Origin); err != nil {
+		return err
+	}
+	m.Router.Use(func(next http.Handler) http.Handler {
+		return cop.Handler(next)
+	})
 
 	m.Router.Use(middleware.RequestID)
 	m.Router.Use(middleware.Logger)

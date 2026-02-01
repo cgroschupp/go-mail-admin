@@ -10,7 +10,6 @@ import (
 	"github.com/cgroschupp/go-mail-admin/internal/domain"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/go-chi/render"
-	"github.com/gorilla/csrf"
 )
 
 type authHandler struct {
@@ -18,12 +17,6 @@ type authHandler struct {
 	dashboardService domain.DashboardService
 	jwtAuth          *jwtauth.JWTAuth
 	config           *config.Config
-}
-
-// UserOperationsCsrf implements openapiauth.ServerInterface.
-func (s *authHandler) UserOperationsCsrf(w http.ResponseWriter, r *http.Request) {
-	token := csrf.Token(r)
-	render.JSON(w, r, openapiauth.CsrfResponse{CsrfToken: token})
 }
 
 func NewAuthHandler(userService domain.UserService, config *config.Config, jwtAuth *jwtauth.JWTAuth, dashboardService domain.DashboardService) *authHandler {

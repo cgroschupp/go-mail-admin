@@ -34,7 +34,7 @@ func main() {
 			&cli.StringFlag{Name: "auth-secret", Destination: &cfg.Auth.Secret, Sources: prefixEnvSource("AUTH_SECRET")},
 			&cli.BoolFlag{Name: "cookie-secure", Destination: &cfg.Cookie.Secure, Value: false, Sources: prefixEnvSource("COOKIE_SECURE")},
 			&cli.StringFlag{Name: "cookie-host", Destination: &cfg.Host, Value: "localhost", Sources: prefixEnvSource("COOKIE_HOST")},
-			&cli.StringFlag{Name: "origin", Destination: &cfg.Origin, Value: "localhost:3001", Sources: prefixEnvSource("ORIGIN")},
+			&cli.StringFlag{Name: "origin", Destination: &cfg.Origin, Value: "http://localhost:3001", Sources: prefixEnvSource("ORIGIN")},
 			&cli.StringFlag{Name: "mail-hostname", Destination: &cfg.Hostname, Value: "localhost", Sources: prefixEnvSource("MAIL_HOSTNAME")},
 			&cli.StringFlag{Name: "tls-cert", Destination: &cfg.TLSCert, Sources: prefixEnvSource("TLS_CERT")},
 			&cli.StringFlag{Name: "tls-key", Destination: &cfg.TLSKey, Sources: prefixEnvSource("TLS_KEY")},

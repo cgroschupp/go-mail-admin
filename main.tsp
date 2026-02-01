@@ -166,10 +166,6 @@ model LoginResponse {
   token: string;
 }
 
-model CsrfResponse {
-  csrfToken: string;
-}
-
 @tag("User")
 interface UserOperations {
   @tag("Public")
@@ -177,9 +173,6 @@ interface UserOperations {
   @post login(@body body: LoginParameter): LoginResponse | Error;
   @route("logout")
   @post logout(): boolean | Error;
-  @tag("Public")
-  @route("csrf")
-  @get csrf(): CsrfResponse;
 }
 
 model DashboardStatsItem {
