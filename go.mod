@@ -13,7 +13,7 @@ require (
 	github.com/go-playground/validator/v10 v10.30.1
 	github.com/oapi-codegen/nethttp-middleware v1.0.3-0.20250425070948-753057ec98db
 	github.com/oapi-codegen/runtime v1.3.1
-	github.com/rs/zerolog v1.34.0
+	github.com/rs/zerolog v1.35.0
 	github.com/stretchr/testify v1.11.1
 	github.com/urfave/cli/v3 v3.8.0
 	golang.org/x/crypto v0.49.0
@@ -53,7 +53,7 @@ require (
 	github.com/lestrrat-go/jwx/v3 v3.0.2 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/mailru/easyjson v0.9.0 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/oapi-codegen/oapi-codegen/v2 v2.6.0 // indirect
