@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^5.0.9",
-    "eslint": "^9.39.2",
+    "eslint": "^10.0.0",
     "eslint-plugin-vue": "^10.6.2",
     "eslint-plugin-vuetify": "^2.5.3",
     "webpack-plugin-vuetify": "^3.1.2"
