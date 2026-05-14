@@ -15,17 +15,19 @@
             </v-card-text>
             <v-card-actions>
                 <v-btn to="/alias/new" prepend-icon="mdi-plus-circle-outline">Add</v-btn>
-                <v-btn @click="removeAlias()" v-if="selected.length > 0"
+                <v-btn @click="deleteAliases()" v-if="selected.length > 0"
                     prepend-icon="mdi-delete">Delete</v-btn>
                 <v-btn @click="editAlias()" v-if="selected.length == 1"
                     prepend-icon="mdi-pencil">Edit</v-btn>
             </v-card-actions>
         </v-card>
     </v-container>
+    <ConfirmDialog ref="confirmDialog" />
 </template>
 <script>
 
 import Client from "../service/Client";
+import ConfirmDialog from "../components/ConfirmDialog.vue";
 
 export default {
     name: 'AliasView',
@@ -38,34 +40,38 @@ export default {
         editAlias: function () {
             this.$router.push("/alias/" + this.selected[0].id)
         },
-        removeAlias: function () {
-            this.$dialog.create({
-                title: "Delete Alias",
-                text: "Do you want to delete the Alias(es) " + this.selected.map(entry => entry.source_username + "@" + entry.source_domain.name).join(', ') + "?",
-                cancelText: "No",
-                confirmationText: "Yes",
-                buttons: [
-                    { key: 'cancel', title: 'Cancel', value: 'cancel', color: 'grey', variant: 'text' },
-                    { key: 'ok', title: 'OK', value: 'ok', color: 'info', variant: 'tonal' }
-                ],
-            }).then((anwser) => {
-                if (anwser === "ok") {
-                    for (var i = 0; i < this.selected.length; i++) {
-                        Client.removeAlias(this.selected[i].id).then(() => {
-                            this.getAliases();
-                        })
-                    }
-                }
-            })
-        }
+        async deleteAliases() {
+            const selected = [...this.selected];
+            const aliases = selected
+                .map(entry => `${entry.source_username}@${entry.source_domain.name}`)
+                .join(", ");
 
+            const confirmed = await this.$refs.confirmDialog.confirm({
+                title: "Delete Alias",
+                text: `Do you want to delete the Alias(es) ${aliases}?`,
+                cancelText: "No",
+                confirmText: "Yes",
+            });
+
+            if (!confirmed) {
+                return;
+            }
+
+            await Promise.all(
+                selected.map(alias =>
+                Client.removeAlias(alias.id)
+                )
+            );
+            this.selected = []
+            await this.getAliases();
+        }
     },
     mounted: function () {
         this.getAliases();
 
     },
     components: {
-
+        ConfirmDialog,
     },
     data: () => ({
         'headers': [

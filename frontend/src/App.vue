@@ -2,17 +2,20 @@
 import { ref, onMounted } from 'vue'
 import Client from "./service/Client";
 import Topbar from "./components/Topbar";
+import NotificationBar from "./components/NotificationBar.vue";
 
 const version = ref("unknown")
+const notifyRef = ref(null);
 
 onMounted(() => {
-    Client.getVersion().then((res) => {
-      if (res !== undefined) {
-        version.value = res.data.version
-      }
-    }).catch((error) => {
-        version.value = "unknown"
-    });
+  window.$notify = notifyRef.value;
+  Client.getVersion().then((res) => {
+    if (res !== undefined) {
+      version.value = res.data.version
+    }
+  }).catch((error) => {
+      version.value = "unknown"
+  });
 })
 </script>
 
@@ -21,6 +24,7 @@ onMounted(() => {
     <Topbar/>
     <v-main>
       <router-view />
+      <NotificationBar ref="notifyRef" />
     </v-main>
     <v-footer>
       <v-row justify="center" no-gutters>

@@ -85,21 +85,33 @@
                 if(this.account.id) {
                     Client.saveAccount(this.account.id, this.account).then(() => {
                         this.getAccounts();
-                        this.$notify.info("Account saved");
+                        window.$notify.notify({
+                            text: "Account saved",
+                            color: "success",
+                        });
                         this.$router.push("/account")
                     })
                 } else {
                     Client.createAccount(this.account).then(() => {
-                        this.$notify.info("Account created");
+                        window.$notify.notify({
+                            text: "Account created",
+                            color: "success",
+                        });
                         this.$router.push("/account")
                     })
                 }
             },
             changePassword: function () {
                 Client.changePassword(this.account.id, this.password).then(()=> {
-                    this.$notify.info("Password changed");
+                    window.$notify.notify({
+                        text: "Password changed",
+                        color: "success",
+                    });
                 }).catch(() => {
-                    this.$notify.error("Oups, something go wrong")
+                    window.$notify.notify({
+                        text: "Oups, something go wrong",
+                        color: "error",
+                    });
                 })
             }
         },

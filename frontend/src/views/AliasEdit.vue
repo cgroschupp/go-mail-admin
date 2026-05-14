@@ -44,19 +44,28 @@ export default {
         saveAlias: function () {
             if (this.alias.id) {
                 Client.saveAlias(this.alias.id, this.alias).then(() => {
-                    this.$notify.info("Alias saved", { location: 'bottom center' });
+                    window.$notify.notify({
+                        text: "Alias saved",
+                        color: "success",
+                    });
                     this.$router.push("/alias")
                 })
             } else {
                 Client.createAlias(this.alias).then(() => {
-                    this.$notify.info("Alias created", { location: 'bottom center' });
+                    window.$notify.notify({
+                        text: "Alias created",
+                        color: "success",
+                    });
                     this.$router.push("/alias")
                 }, (e) => {
                     var msg = e.response.data
                     if (msg == "Source Username can`t be empty string, only null or string is valid") {
                         msg = "Enter Source Username or enable catch all!"
                     }
-                    this.$notify.error("Something go wrong", { location: 'bottom center' });
+                    window.$notify.notify({
+                        text: "Oups, something go wrong",
+                        color: "error",
+                    });
                 })
             }
 

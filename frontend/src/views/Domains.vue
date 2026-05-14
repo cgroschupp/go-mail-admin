@@ -38,15 +38,16 @@
                 </v-data-table>
             </v-card-text>
             <v-card-actions>
-                <v-btn @click="removeDomain()" v-if="selected[0]" prepend-icon="mdi-delete">Delete Domain(s)</v-btn><br><br>
+                <v-btn @click="deleteDomain()" v-if="selected[0]" prepend-icon="mdi-delete">Delete Domain(s)</v-btn><br><br>
             </v-card-actions>
         </v-card>
     </v-container>
+    <ConfirmDialog ref="confirmDialog" />
 </template>
-
 <script>
 
 import Client from "../service/Client";
+import ConfirmDialog from "../components/ConfirmDialog.vue";
 
 export default {
     name: 'DomainView',
@@ -59,23 +60,24 @@ export default {
                 this.domains = res.data.items;
             });
         },
-        removeDomain: function () {
-            this.$dialog.create({
+        async deleteDomain() {
+            const domain = { ...this.selected[0] };
+
+            const confirmed = await this.$refs.confirmDialog.confirm({
                 title: "Delete Domain",
-                text: "Do you want to delete the Domain " + this.selected[0].name + "?",
+                text: `Do you want to delete the Domain ${domain.name}?`,
                 cancelText: "No",
-                confirmationText: "Yes",
-                buttons: [
-                    { key: 'cancel', title: 'Cancel', value: 'cancel', color: 'grey', variant: 'text' },
-                    { key: 'ok', title: 'OK', value: 'ok', color: 'info', variant: 'tonal' }
-                ],
-            }).then((anwser) => {
-                if (anwser === "ok") {
-                    Client.removeDomain(this.selected[0].id).then(() => {
-                        this.getDomains();
-                    })
-                }
-            })
+                confirmText: "Yes",
+            });
+
+            if (!confirmed) {
+                return;
+            }
+
+            await Client.removeDomain(domain.id);
+
+            this.selected = []
+            await this.getDomains();
         },
         addDomain: function () {
             Client.addDomain(this.newDomain).then(() => {
@@ -84,7 +86,10 @@ export default {
 
             }).catch((e) => {
                 var msg = e.response.data.message
-                this.$notify.error("Something go wrong: " +msg, { location: 'bottom center' });
+                window.$notify.notify({
+                    text: "Oups, something go wrong",
+                    color: "error",
+                });
             });
         }
     },
@@ -92,7 +97,7 @@ export default {
         this.getDomains();
     },
     components: {
-
+        ConfirmDialog,
     },
     data: () => ({
         expanded: [],

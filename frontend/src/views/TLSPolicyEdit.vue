@@ -28,15 +28,27 @@ export default {
     'savePolicy': function () {
       if (this.$route.params.id) {
         Client.updateTLSPolicy(this.$route.params.id, { "domain": this.domain, "policy": this.policy, "params": this.params }).then(() => {
-          this.$notify.info("Policy saved", { location: 'bottom center' });
+          window.$notify.notify({
+            text: "Policy saved",
+            color: "success",
+          });
         }).catch((res) => {
-          this.$notify.error("Oups, something go wrong" + res)
+          window.$notify.notify({
+            text: "Oups, something go wrong" + res,
+            color: "error",
+          });
         });
       } else {
         Client.createTLSPolicy({ "domain_id": this.domain_id, "policy": this.policy, "params": this.params }).then(() => {
-          this.$notify.info("Policy saved", { location: 'bottom center' });
+          window.$notify.notify({
+            text: "Saved successfully",
+            color: "success",
+          });
         }).catch((res) => {
-          this.$notify.error("Oups, something go wrong" + res)
+          window.$notify.notify({
+            text: "Oups, something go wrong" + res,
+            color: "error",
+          });
         });
       }
       this.$router.push("/tls")

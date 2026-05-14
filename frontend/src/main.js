@@ -4,7 +4,6 @@ import App from './App.vue'
 import router from './router'
 import vuetify from './plugins/vuetify'
 import { loadFonts } from './plugins/webfontloader'
-import {Vuetify3Dialog} from 'vuetify3-dialog'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 
 const pinia = createPinia()
@@ -21,7 +20,6 @@ async function bootstrap() {
 
   app.use(router)
     .use(vuetify)
-    .use(Vuetify3Dialog, { vuetify })
     .mount('#app')
 }
 

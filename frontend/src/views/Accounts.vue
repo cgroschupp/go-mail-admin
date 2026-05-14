@@ -20,17 +20,19 @@
             </v-card-text>
             <v-card-actions>
                 <v-btn to="/account/new" prepend-icon="mdi-plus-circle-outline">Add</v-btn>
-                <v-btn @click="deleteAccount()" v-if="selected.length > 0"
+                <v-btn @click="deleteAccounts()" v-if="selected.length > 0"
                     prepend-icon="mdi-close-circle-outline">Delete</v-btn>
                 <v-btn @click="editAlias()" v-if="selected.length == 1" prepend-icon="mdi-circle-edit-outline">Edit</v-btn>
             </v-card-actions>
         </v-card>
     </v-container>
+    <ConfirmDialog ref="confirmDialog" />
 </template>
 
 <script>
 
 import Client from "../service/Client";
+import ConfirmDialog from "@/components/ConfirmDialog.vue";
 
 export default {
     name: 'AccountsView',
@@ -43,34 +45,38 @@ export default {
         editAlias: function () {
             this.$router.push("/account/" + this.selected[0].id)
         },
-        deleteAccount: function () {
-            this.$dialog.create({
-                title: "Delete Account",
-                text: "Do you want to delete the Account(s) " + this.selected.map(entry => entry.username + "@" + entry.domain.name).join(', ') + "?",
-                cancelText: "No",
-                confirmationText: "Yes",
-                buttons: [
-                    { key: 'cancel', title: 'Cancel', value: 'cancel', color: 'grey', variant: 'text' },
-                    { key: 'ok', title: 'OK', value: 'ok', color: 'info', variant: 'tonal' }
-                ],
-            }).then((anwser) => {
-                if (anwser === "ok") {
-                    for (var i = 0; i <= this.selected.length; i++) {
-                        Client.deleteAccount(this.selected[i].id).then(() => {
-                            this.getAccounts();
-                        })
-                    }
-                }
-            })
-        }
+        async deleteAccounts() {
+            const selected = [...this.selected];
+            const accounts = selected
+                .map(entry => `${entry.username}@${entry.domain.name}`)
+                .join(", ");
 
+            const confirmed = await this.$refs.confirmDialog.confirm({
+                title: "Delete Account",
+                text: `Do you want to delete the Account(s) ${accounts}?`,
+                cancelText: "No",
+                confirmText: "Yes",
+            });
+
+            if (!confirmed) {
+                return;
+            }
+
+            await Promise.all(
+                selected.map(account =>
+                Client.deleteAccount(account.id)
+                )
+            );
+            this.selected = [];
+            await this.getAccounts();
+        },
     },
     mounted: function () {
         this.getAccounts();
 
     },
     components: {
-
+        ConfirmDialog,
     },
     data: () => ({
         'headers': [
