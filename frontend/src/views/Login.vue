@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import { useAuthStore } from '@/stores/auth.js'
+import { useAuthStore } from '../stores/auth.js'
 import { storeToRefs } from 'pinia'
 const username = ref("")
 const password = ref("")

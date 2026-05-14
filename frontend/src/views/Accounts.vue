@@ -32,7 +32,7 @@
 <script>
 
 import Client from "../service/Client";
-import ConfirmDialog from "@/components/ConfirmDialog.vue";
+import ConfirmDialog from "../components/ConfirmDialog.vue";
 
 export default {
     name: 'AccountsView',

@@ -1,15 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
-import Domains from "../views/Domains";
-import Alias from "../views/Alias";
-import AliasEdit from "../views/AliasEdit";
-import Accounts from "../views/Accounts";
-import AccountEdit from "../views/AccountEdit";
-import TLSPolicy from "../views/TLSPolicy";
-import TLSPolicyEdit from "../views/TLSPolicyEdit";
-import Login from "../views/Login"
-import Logout from "../views/Logout";
-import { useAuthStore } from '@/stores/auth.js'
+import Domains from "../views/Domains.vue";
+import Alias from "../views/Alias.vue";
+import AliasEdit from "../views/AliasEdit.vue";
+import Accounts from "../views/Accounts.vue";
+import AccountEdit from "../views/AccountEdit.vue";
+import TLSPolicy from "../views/TLSPolicy.vue";
+import TLSPolicyEdit from "../views/TLSPolicyEdit.vue";
+import Login from "../views/Login.vue"
+import Logout from "../views/Logout.vue";
+import { useAuthStore } from '../stores/auth.js'
 
 const routes = [
   {

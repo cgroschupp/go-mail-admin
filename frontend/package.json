@@ -1,64 +1,28 @@
 {
-  "name": "go-mail-admin-gui",
-  "version": "0.1.0",
+  "name": "frontend",
   "private": true,
+  "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
+    "@fontsource/roboto": "^5.2.10",
     "@mdi/font": "^7.4.47",
-    "axios": "^1.13.2",
-    "chart.js": "^4.5.1",
+    "axios": "^1.16.1",
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
-    "vue": "^3.5.25",
+    "sass": "^1.99.0",
+    "vue": "^3.5.34",
     "vue-chartjs": "^5.3.3",
-    "vue-cli-plugin-vuetify": "^2.5.8",
-    "vue-router": "^5.0.0",
-    "vue-template-compiler": "^2.7.16",
-    "vuetify": "^3.11.4",
+    "vue-router": "^5.0.7",
+    "vuetify": "^4.0.7",
     "webfontloader": "^1.6.28"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "^5.0.9",
-    "eslint": "^10.0.0",
-    "eslint-plugin-vue": "^10.6.2",
-    "eslint-plugin-vuetify": "^2.5.3",
-    "webpack-plugin-vuetify": "^3.1.2"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/essential",
-      "eslint:recommended"
-    ],
-    "parserOptions": {
-      "parser": "@babel/eslint-parser"
-    },
-    "rules": {
-      "vue/multi-word-component-names": [
-        "error",
-        {
-          "ignores": [
-            "Select2"
-          ]
-        }
-      ],
-      "vue/valid-v-slot": [
-        "error",
-        {
-          "allowModifiers": true
-        }
-      ]
-    }
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions"
-  ]
+    "@vitejs/plugin-vue": "^6.0.6",
+    "vite": "^8.0.12"
+  }
 }

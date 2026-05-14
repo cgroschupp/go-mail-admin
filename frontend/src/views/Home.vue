@@ -80,7 +80,7 @@
 </template>
 
 <script setup>
-import Chart from "../components/Chart";
+import Chart from "../components/Chart.vue";
 import { ref, onMounted } from 'vue'
 import Client from "../service/Client";
 

@@ -1,10 +1,10 @@
 import axios from 'axios'
-import { useAuthStore } from '@/stores/auth.js'
+import { useAuthStore } from '../stores/auth.js'
 
 export default () => {
     const store = useAuthStore()
     const instance = axios.create({
-        baseURL: process.env.VUE_APP_API_URL,
+        baseURL: import.meta.env.VITE_API_URL,
         withCredentials: true,
     });
 

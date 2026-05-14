@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
-import Client from "./service/Client";
-import Topbar from "./components/Topbar";
+import Client from "./service/Client.js";
+import Topbar from "./components/Topbar.vue";
 import NotificationBar from "./components/NotificationBar.vue";
 
 const version = ref("unknown")
