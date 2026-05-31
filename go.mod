@@ -10,7 +10,7 @@ require (
 	github.com/go-chi/chi/v5 v5.3.0
 	github.com/go-chi/jwtauth/v5 v5.4.0
 	github.com/go-chi/render v1.0.3
-	github.com/go-playground/validator/v10 v10.30.2
+	github.com/go-playground/validator/v10 v10.30.3
 	github.com/oapi-codegen/nethttp-middleware v1.1.3-0.20260517154323-ac0bba4da1b0
 	github.com/oapi-codegen/runtime v1.4.1
 	github.com/rs/zerolog v1.35.1
