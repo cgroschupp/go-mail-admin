@@ -2,7 +2,7 @@ module github.com/cgroschupp/go-mail-admin
 
 go 1.25.0
 
-toolchain go1.26.3
+toolchain go1.26.4
 
 require (
 	github.com/getkin/kin-openapi v0.140.0
