@@ -12,7 +12,7 @@ require (
 	github.com/go-chi/render v1.0.3
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/oapi-codegen/nethttp-middleware v1.1.3-0.20260604170657-74f40cc36638
-	github.com/oapi-codegen/runtime v1.4.1
+	github.com/oapi-codegen/runtime v1.4.2
 	github.com/rs/zerolog v1.35.1
 	github.com/stretchr/testify v1.11.1
 	github.com/urfave/cli/v3 v3.9.1
