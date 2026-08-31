@@ -7,7 +7,7 @@ toolchain go1.26.4
 require (
 	github.com/getkin/kin-openapi v0.140.0
 	github.com/glebarez/sqlite v1.11.0
-	github.com/go-chi/chi/v5 v5.3.0
+	github.com/go-chi/chi/v5 v5.3.2
 	github.com/go-chi/jwtauth/v5 v5.4.0
 	github.com/go-chi/render v1.0.3
 	github.com/go-playground/validator/v10 v10.30.3
